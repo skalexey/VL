@@ -1,0 +1,3 @@
+// the configured options and settings for JSONConverter
+#define JSONConverter_VERSION_MAJOR @JSONConverter_VERSION_MAJOR@
+#define JSONConverter_VERSION_MINOR @JSONConverter_VERSION_MINOR@
