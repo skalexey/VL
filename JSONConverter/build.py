@@ -1,8 +1,11 @@
 import os
 import subprocess
 
-if os.name == 'nt':
-    os.system("build.bat")
-else:
-    os.system("./build.sh")
+status = 0
 
+if os.name == 'nt':
+    status = os.system("build.bat")
+else:
+    status = os.system("./build.sh")
+
+exit(status)
