@@ -5,18 +5,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Uncomment the next line if want to experiment with g++ compliation
 #set(CMAKE_CXX_COMPILER "g++")
 
-message("JSONConverter CMakeLists")
-
 project(JSONConverter)
 option(JSON_TESTS "Add JSONTest target" OFF)
 
+set(DEPS "dependencies")
+set(VL_DIR "${PROJECT_SOURCE_DIR}/../")
+
 include_directories(${PROJECT_BINARY_DIR})
-include_directories("${PROJECT_SOURCE_DIR}/VL/include")
+include_directories("${VL_DIR}/include")
+include_directories("${DEPS}/rapidjson/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/VL")
-
-message("JSONConverter added VL")
+add_subdirectory("${VL_DIR}" "${VL_DIR}/Build")
 
 file(GLOB SRC "src/*")
 file(GLOB HEADERS "include/*")
