@@ -16,7 +16,13 @@ include_directories("${VL_DIR}/include")
 include_directories("${DEPS}/rapidjson/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-add_subdirectory("${VL_DIR}" "${VL_DIR}/Build")
+if (CMAKE_CXX_COMPILER EQUAL "g++")
+	set(VL_BUILD_DIR_NAME "Build-g++")
+else ()
+	set(VL_BUILD_DIR_NAME "Build")
+endif ()
+
+add_subdirectory("${VL_DIR}" "${VL_DIR}/${VL_BUILD_DIR_NAME}")
 
 file(GLOB SRC "src/*")
 file(GLOB HEADERS "include/*")
