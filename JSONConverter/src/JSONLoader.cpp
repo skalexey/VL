@@ -1,6 +1,7 @@
 #include <cstring>
 #include "JSONLoader.h"
 #include "vl.h"
+#include "Utils.h"
 
 vl::JSONLoader::ContainerInfo* vl::JSONLoader::GetCurrentContainer()
 {
@@ -22,7 +23,7 @@ void vl::JSONLoader::PopContainer()
 	mStack.pop_back();
 }
 
-void vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
+bool vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 {
 	bool isRoot = false;
 	if (GetCurrentContainer() == nullptr)
@@ -33,7 +34,12 @@ void vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 	auto& c = GetCurrentContainer()->var;
 	if (c.IsObject())
 	{
-		assert(!mCurrentKey.empty());
+		if (mCurrentKey.empty())
+		{
+			// TODO: replace with macro LOG
+			Utils::Warn("[JSONLoader] Seems like this is a non existent document");
+			return false;
+		}
 		c.AsObject().Set(mCurrentKey.c_str(), ptr);
 		mCurrentKey.clear();
 	}
@@ -45,6 +51,7 @@ void vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 	{
 		assert(c.IsList() || c.IsObject());
 	}
+	return true;
 }
 
 void vl::JSONLoader::PushNewList(ContainerInfo* parentContainer, const std::string& listName)
@@ -120,7 +127,8 @@ void vl::JSONLoader::ResolveRefs()
 bool vl::JSONLoader::Null()
 {
 	auto varPtr = MakePtr();
-	AddVar(varPtr);
+	if (!AddVar(varPtr))
+		return false;
 	return true;
 }
 

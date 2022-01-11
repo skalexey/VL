@@ -47,7 +47,7 @@ namespace vl
 		bool EndArray(SizeType elementCount);
 
 	protected:
-		void AddVar(const vl::VarPtr& ptr);
+		bool AddVar(const vl::VarPtr& ptr);
 		// 3 following functions: Memorize current object or a list as a container for the next parsed elements
 		void PushNewList(ContainerInfo* parentContainer, const std::string& listName);
 		void PushNewObject(ContainerInfo* c, const std::string& objectName);
