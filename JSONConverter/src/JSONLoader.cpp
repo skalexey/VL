@@ -1,7 +1,7 @@
 #include <cstring>
 #include "JSONLoader.h"
 #include "vl.h"
-#include "Utils.h"
+#include "Log.h"
 
 vl::JSONLoader::ContainerInfo* vl::JSONLoader::GetCurrentContainer()
 {
@@ -36,8 +36,7 @@ bool vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 	{
 		if (mCurrentKey.empty())
 		{
-			// TODO: replace with macro LOG
-			Utils::Warn("[JSONLoader] Seems like this is a non existent document");
+			LOG_WARNING("[JSONLoader] Seems like this is a non existent document");
 			return false;
 		}
 		c.AsObject().Set(mCurrentKey.c_str(), ptr);
