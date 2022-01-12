@@ -2,7 +2,7 @@
 
 set build=Build\
 set deps=dependencies\
-set jsonTestsArg= -DJSON_TESTS=ON
+set cmakeTestsArg= -DJSON_TESTS=ON
 set cmakeGppArg=
 
 for %%x in (%*) do (
@@ -13,7 +13,7 @@ for %%x in (%*) do (
 		goto download
 	) else if "%%~x"=="only-lib" (
 		echo --- 'only-lib' option passed. Build only library without tests
-		set jsonTestsArg=
+		set cmakeTestsArg=
      ) else if "%%~x" == "g++" (
 	     echo --- 'g++' option passed. Build with g++ compiler
 	     set cmakeGppArg = -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gpp
@@ -36,11 +36,36 @@ IF not exist %deps%\rapidjson (
 
 if defined onlyDownload ( goto end )
 
+if not exist %build% (
+	mkdir %build%
+	if %errorlevel% == 0 ( echo --- '%build%' directory created
+	) else ( echo --- Error while creating '%build%' directory. Exit 
+		goto end )
+) else ( echo --- '%build%' directory already exists )
+
+cd %build%
+
+echo --- Configure JSONConverter with CMake
+
+cmake ..%cmakeGppArg%%cmakeTestsArg%
+
+if %errorlevel% neq 0 (
+	echo --- CMake generation error: %errorlevel%
+	goto end
+)
+
 echo --- Build JSONConverter with CMake
-IF not exist %build% ( mkdir %build% )
-cd Build
-cmake ..%cmakeGppArg%%jsonTestsArg%
+
 cmake --build .
+
+if %errorlevel% neq 0 (
+	echo --- CMake build error: %errorlevel%
+	goto end
+) else (
+	echo --- CMake build successfully completed
+)
 cd ..
+
+
 
 : end
