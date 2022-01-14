@@ -66,7 +66,6 @@ bool vl::JSONConverter::Load(Object& object, const char* filePath)
 	rapidjson::Document d;
 	d.Parse<0>(buf.str().c_str());
 	vl::JSONLoader loader(object);
-	d.Accept(loader);
-	return true;
+	return d.Accept(loader);
 }
 

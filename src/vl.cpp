@@ -124,24 +124,24 @@ namespace vl
 		return right.mData.get() == mData.get();
 	}
 
-	Var& ObjectVar::Set(const char* propName)
+	Var& ObjectVar::Set(const std::string& propName)
 	{
 		return Set(propName, MakePtr(NullVar()));
 	}
 
-	Var& ObjectVar::Set(const char* propName, Var& value)
+	Var& ObjectVar::Set(const std::string& propName, Var& value)
 	{
 		return Set(propName, MakePtr(value));
 	}
 
-	Var& ObjectVar::Set(const char* propName, const VarPtr& varPtr)
+	Var& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
 	{
 		if (!mData)
 			return emptyVar;
 		return *((*mData)[propName] = varPtr);
 	}
 
-	Var& ObjectVar::Get(const char* propName)
+	Var& ObjectVar::Get(const std::string& propName)
 	{
 		if (!mData)
 			return emptyVar;
@@ -158,7 +158,7 @@ namespace vl
 		return emptyVar;
 	}
 	
-	bool ObjectVar::Has(const char* propName)
+	bool ObjectVar::Has(const std::string& propName)
 	{
 		if (!mData)
 			return false;
@@ -166,12 +166,27 @@ namespace vl
 		return it != mData->end();
 	}
 
-	bool ObjectVar::RemoveProperty(const char* propName)
+	bool ObjectVar::RemoveProperty(const std::string& propName)
 	{
 		if (!mData)
 			return false;
 		mData->erase(propName);
 		return true;
+	}
+
+	bool ObjectVar::RenameProperty(const std::string& propName, const std::string& newName)
+	{
+        if (Has(newName))
+            return false;
+		if (Has(propName))
+			if (propName != newName)
+			{
+				auto varPtr = (*mData)[propName];
+				mData->erase(propName);
+                mData->emplace(newName, varPtr);
+				return true;
+			}
+		return false;
 	}
 	
 	bool ObjectVar::Accept(Visitor& v, const char* name)

@@ -83,9 +83,9 @@ vl::JSONLoader::ContainerInfo* vl::JSONLoader::PushNewContainer(bool isObject, b
 		assert(!mCurrentKey.empty());
 		auto& obj = v.AsObject();
 		if (isObject)
-			obj.Set(mCurrentKey.c_str(), vl::Object());
+			obj.Set(mCurrentKey, vl::Object());
 		else if (isList)
-			obj.Set(mCurrentKey.c_str(), vl::List());
+			obj.Set(mCurrentKey, vl::List());
 		return PushContainer(&obj.Get(mCurrentKey.c_str()), newContainerName);
 	}
 	else if (v.IsList())

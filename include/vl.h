@@ -69,6 +69,7 @@ namespace vl
 		virtual bool IsNull() const { return true; }
 		virtual VarPtr Ptr() const = 0;
 		virtual bool Accept(Visitor& v, const char* name = nullptr) { return true; }
+		virtual operator bool() const { return !IsNull(); }
 
 	protected:
 		template <typename T>
@@ -144,19 +145,20 @@ namespace vl
 		bool IsObject() const override { return true; }
 		bool operator == (const ObjectVar& right);
 		ObjectVar& AsObject() override { return *this; }
-		Var& Set(const char* propName);
-		Var& Set(const char* propName, Var& value);
-		Var& Set(const char* propName, const VarPtr& varPtr);
+		Var& Set(const std::string& propName);
+		Var& Set(const std::string& propName, Var& value);
+		Var& Set(const std::string& propName, const VarPtr& varPtr);
 		template <typename T>
-		Var& Set(const char* propName, const T& value)
+		Var& Set(const std::string& propName, const T& value)
 		{
 			assert(mData);
 			VarPtr var = MakePtr(value);
 			return *((*mData)[propName] = var);
 		}
-		Var& Get(const char* propName);
-		bool Has(const char* propName);
-		bool RemoveProperty(const char* propName);
+		Var& Get(const std::string& propName);
+		bool Has(const std::string& propName);
+		bool RemoveProperty(const std::string& propName);
+		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
