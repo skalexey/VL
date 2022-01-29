@@ -1,15 +1,37 @@
-#include "vl.h"
-#include "vl.h"
-#include "vl.h"
-#include "vl.h"
-#include "vl.h"
 #include <assert.h>
+#include <sstream>
 #include "vl.h"
 #include "visitor.h"
 
 namespace vl
 {
-	NullVar emptyVar;
+	vl::NullVar emptyVar;
+	vl::Object nullObject(nullptr);
+	vl::ListVar emptyList;
+
+	std::string GetTypeId(const vl::Object& value, const vl::Object& context)
+	{
+		// TODO: avoid iteration
+		std::string type;
+		auto search = [&](const vl::Var& r) {
+			if (r.IsNull())
+				return false;
+			return !r.AsObject().ForeachProp(
+				[&](const std::string& propName, const vl::Var& propVal) {
+					if (propVal.AsObject() == value)
+					{
+						type = propName;
+						return false;
+					}
+					return true;
+				});
+		};
+		if (search(context.Get("types")))
+			return type;
+		else if (search(context.Get("private")))
+			return type;
+		return type;
+	}
 
 	VarPtr MakePtr(bool value)
 	{
@@ -51,7 +73,7 @@ namespace vl
 		return std::make_shared<NullVar>();
 	}
 
-	VarPtr MakePtr(Var& value)
+	VarPtr MakePtr(const Var& value)
 	{
 		if (value.IsBool())
 			return MakePtr(value.AsBool().Val());
@@ -75,39 +97,64 @@ namespace vl
 	}
 
 	// ======= Begin of AbstractVar definitions =======
-	BoolVar& AbstractVar::AsBool()
+	const BoolVar& AbstractVar::AsBool() const
 	{
 		// Default implementation
 		static BoolVar emptyVar;
 		return emptyVar;
 	}
 
-	NumberVar& AbstractVar::AsNumber()
+	const NumberVar& AbstractVar::AsNumber() const
 	{
 		// Default implementation
 		static NumberVar emptyVar;
 		return emptyVar;
 	}
 
-	StringVar& AbstractVar::AsString()
+	const StringVar& AbstractVar::AsString() const
 	{
 		// Default implementation
 		static StringVar emptyVar;
 		return emptyVar;
 	}
 
-	ObjectVar& AbstractVar::AsObject()
+	const ObjectVar& AbstractVar::AsObject() const
 	{
 		// Default implementation
 		static ObjectVar emptyVar;
 		return emptyVar;
 	}
 
+	const ListVar& AbstractVar::AsList() const
+	{
+		// Default implementation
+		return emptyList;
+	}
+
+	BoolVar& AbstractVar::AsBool()
+	{
+		return const_cast<BoolVar&>(const_cast<const AbstractVar*>(this)->AsBool());
+	}
+
+	NumberVar& AbstractVar::AsNumber()
+	{
+		return const_cast<NumberVar&>(const_cast<const AbstractVar*>(this)->AsNumber());
+	}
+
+	StringVar& AbstractVar::AsString()
+	{
+		return const_cast<StringVar&>(const_cast<const AbstractVar*>(this)->AsString());
+	}
+
+	ObjectVar& AbstractVar::AsObject()
+	{
+		return const_cast<ObjectVar&>(const_cast<const AbstractVar*>(this)->AsObject());
+	}
+
 	ListVar& AbstractVar::AsList()
 	{
 		// Default implementation
-		static ListVar emptyVar;
-		return emptyVar;
+		return const_cast<ListVar&>(const_cast<const AbstractVar*>(this)->AsList());
 	}
 	// ======= End of AbstractVar definitions =======
 
@@ -119,9 +166,38 @@ namespace vl
 	//	return *((*mData)[propName] = value.Ptr());
 	//}
 
-	bool ObjectVar::operator==(const ObjectVar& right)
+	ObjectVar::ObjectVar(const ObjectDataType& dataPtr)
+		: mData(dataPtr)
+	{}
+
+	bool ObjectVar::operator==(const ObjectVar& right) const
 	{
 		return right.mData.get() == mData.get();
+	}
+
+	bool ObjectVar::operator==(const ObjectVar& right)
+	{
+		return const_cast<const ObjectVar*>(this)->operator==(right);
+	}
+
+	ObjectVar::operator bool() const
+	{
+		return !IsNull();
+	}
+
+	const ObjectVar& ObjectVar::AsObject() const
+	{
+		return *this;
+	}
+
+	ObjectVar& ObjectVar::AsObject()
+	{
+		return *this;
+	}
+
+	int ObjectVar::Size() const
+	{
+		return mData ? mData->size() : 0;
 	}
 
 	Var& ObjectVar::Set(const std::string& propName)
@@ -129,7 +205,7 @@ namespace vl
 		return Set(propName, MakePtr(NullVar()));
 	}
 
-	Var& ObjectVar::Set(const std::string& propName, Var& value)
+	Var& ObjectVar::Set(const std::string& propName, const Var& value)
 	{
 		return Set(propName, MakePtr(value));
 	}
@@ -141,7 +217,7 @@ namespace vl
 		return *((*mData)[propName] = varPtr);
 	}
 
-	Var& ObjectVar::Get(const std::string& propName)
+	const Var& ObjectVar::Get(const std::string& propName) const
 	{
 		if (!mData)
 			return emptyVar;
@@ -150,15 +226,18 @@ namespace vl
 			return *it->second;
 		else
 		{
-			it = mData->find("proto");
-			if (it != mData->end())
-				if (it->second->IsObject())
-					return it->second->AsObject().Get(propName);
+			if (auto& proto = GetPrototype())
+				return proto.Get(propName);
 		}
 		return emptyVar;
 	}
+
+	Var& ObjectVar::Get(const std::string& propName)
+	{
+		return const_cast<Var&>(const_cast<const ObjectVar*>(this)->Get(propName));
+	}
 	
-	bool ObjectVar::Has(const std::string& propName)
+	bool ObjectVar::Has(const std::string& propName) const
 	{
 		if (!mData)
 			return false;
@@ -166,12 +245,18 @@ namespace vl
 		return it != mData->end();
 	}
 
+	int ObjectVar::PropCount() const
+	{
+		if (!mData)
+			return 0;
+		return mData->size();
+	}
+
 	bool ObjectVar::RemoveProperty(const std::string& propName)
 	{
 		if (!mData)
 			return false;
-		mData->erase(propName);
-		return true;
+		return mData->erase(propName) > 0;
 	}
 
 	bool ObjectVar::RenameProperty(const std::string& propName, const std::string& newName)
@@ -230,21 +315,57 @@ namespace vl
 		return copy;
 	}
 
-	bool ObjectVar::ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred)
+	bool ObjectVar::ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive) const
 	{
 		if (!pred)
 			return false;
 		if (!mData)
 			return false;
 		for (auto& [propName, value] : *mData)
+		{
 			if (!pred(propName, *value))
 				return false;
+			if (recursive)
+				if (propName == "proto")
+					if (value->IsObject())
+						const_cast<const vl::ObjectVar&>(value->AsObject()).ForeachProp(pred, recursive);
+		}
 		return true;
+	}
+
+	bool ObjectVar::ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive)
+	{
+		// TODO: optimize performance
+		auto pred2 = [&](const std::string& s, const vl::Var& v) {
+			if (!pred(s, const_cast<vl::Var&>(v)))
+				return false;
+			return true;
+		};
+		return const_cast<const ObjectVar*>(this)->ForeachProp(pred2, recursive);
 	}
 	
 	void ObjectVar::SetPrototype(const vl::Object& proto)
 	{
 		Set("proto", proto);
+	}
+
+	Object& ObjectVar::GetPrototype() const
+	{
+		if (mData)
+		{
+			auto it = mData->find("proto");
+			if (it != mData->end())
+				if (it->second->IsObject())
+					return it->second->AsObject();
+		}
+		return nullObject;
+	}
+
+	std::string ObjectVar::ToStr() const
+	{
+		if (auto& proto = GetPrototype())
+			return "{someProto}";
+		return "{}";
 	}
 	
 	// ======= End of ObjectVar definitions =======
@@ -262,14 +383,55 @@ namespace vl
 		return v.VisitBool(*this, name);
 	}
 
+	std::string BoolVar::ToStr() const
+	{
+		return Val() ? "true" : "false";
+	}
+
+	BoolVar& BoolVar::operator=(bool val)
+	{
+		mData = val;
+		return *this;
+	}
+
 	bool NumberVar::Accept(Visitor& v, const char* name)
 	{
 		return v.VisitNumber(*this, name);
 	}
 
+	std::string NumberVar::ToStr() const
+	{
+		std::stringstream ss;
+		ss << Val();
+		return ss.str();
+	}
+
+	NumberVar& NumberVar::operator=(int val)
+	{
+		mData = val;
+		return *this;
+	}
+
+	NumberVar& NumberVar::operator=(double val)
+	{
+		mData = int(val);
+		return *this;
+	}
+
+	NumberVar& NumberVar::operator=(float val)
+	{
+		mData = int(val);
+		return *this;
+	}
+
 	bool StringVar::Accept(Visitor& v, const char* name)
 	{
 		return v.VisitString(*this, name);
+	}
+
+	std::string StringVar::ToStr() const
+	{
+		return Val();
 	}
 
 	// ======= Begin of ListVar definitions =======
@@ -287,12 +449,64 @@ namespace vl
 		return true;
 	}
 
+	int ListVar::Size() const
+	{
+		return mData ? mData->size() : 0;
+	}
+
+	void ListVar::Clear()
+	{
+		if (mData)
+			mData->clear();
+	}
+
+	bool ListVar::Remove(int index)
+	{
+		if (mData)
+		{
+			if (index >= 0 && index < Size())
+				mData->erase(mData->begin() + index);
+			return true;
+		}
+		return false;
+	}
+
+	const Var& ListVar::At(int index) const
+	{
+		// Don't check the range. Should be checked on the level above
+		return mData ? *(*mData)[index] : vl::emptyVar;
+	}
+
+	Var& ListVar::At(int index)
+	{
+		return const_cast<Var&>(const_cast<const ListVar*>(this)->At(index));
+	}
+
 	Var& ListVar::Add(const VarPtr& varPtr)
 	{
 		if (!mData)
 			return emptyVar;
 		mData->push_back(varPtr);
 		return *mData->back();
+	}
+
+	Var& ListVar::Set(int index)
+	{
+		return Set(index, MakePtr(NullVar()));
+	}
+
+	Var& ListVar::Set(int index, const Var& value)
+	{
+		return Set(index, MakePtr(value));
+	}
+
+	Var& ListVar::Set(int index, const VarPtr& varPtr)
+	{
+		if (!mData)
+			return emptyVar;
+		if (index < 0 || index >= mData->size())
+			return emptyVar;
+		return *((*mData)[index] = varPtr);
 	}
 
 	Var& ListVar::Back()
@@ -321,6 +535,10 @@ namespace vl
 			else
 				copy.Add(prop);
 		return copy;
+	}
+	std::string ListVar::ToStr() const
+	{
+		return "[]";
 	}
 	// ======= End of ListVarDefinitions =======
 	bool NullVar::Accept(Visitor& v, const char* name)

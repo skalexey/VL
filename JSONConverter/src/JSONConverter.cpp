@@ -11,7 +11,7 @@
 
 using namespace rapidjson;
 
-bool vl::JSONConverter::Store(vl::Object& object, const vl::Object& context, const char* filePath, const CnvParams& params)
+bool vl::JSONConverter::Store(vl::Object& object, const vl::Object& context, const std::string& filePath, const CnvParams& params)
 {
 	std::string jsonStr;
 	if (!JSONStr(object, context, jsonStr, params))
@@ -56,7 +56,7 @@ std::string vl::JSONConverter::JSONStr(Object& object, const vl::Object& context
 	return s;
 }
 
-bool vl::JSONConverter::Load(Object& object, const char* filePath)
+bool vl::JSONConverter::Load(Object& object, const std::string& filePath)
 {
 	std::ifstream f;
 	f.open(filePath);

@@ -8,15 +8,10 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include "vl_fwd.h"
 
 namespace vl
 {
-	class ObjectVar;
-	class AbstractVar;
-	typedef ObjectVar Object;
-	typedef AbstractVar Var;
-	typedef std::shared_ptr<Var> VarPtr;
-
 	class JSONLoader
 	{
 		struct ContainerInfo;

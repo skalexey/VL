@@ -3,32 +3,6 @@
 #include "JSONWriter.h"
 #include "rapidjson/document.h"
 
-namespace
-{
-	std::string GetTypeId(vl::Object& context, vl::Object& value)
-	{
-		std::string type;
-		auto search = [&](vl::Var& r) {
-			if (r.IsNull())
-				return false;
-			return !r.AsObject().ForeachProp(
-				[&](const std::string& propName, vl::Var& propVal) {
-					if (propVal.AsObject() == value)
-					{
-						type = propName;
-						return false;
-					}
-					return true;
-				});
-		};
-		if (search(context.Get("types")))
-			return type;
-		else if (search(context.Get("private")))
-			return type;
-		return type;
-	}
-}
-
 vl::JSONWriter::JSONWriter(const vl::Object& context, const vl::CnvParams& params)
 	: mContext(context)
 	, mCnvParams(params)
@@ -85,7 +59,7 @@ bool vl::JSONWriter::AddProto(ObjectVar& value)
 	if (mCnvParams.useProtoRefs)
 	{
 		rapidjson::Value val;
-		val.SetString(GetTypeId(mContext, value).c_str(), mDoc.GetAllocator());
+		val.SetString(GetTypeId(value, mContext).c_str(), mDoc.GetAllocator());
 		AddMember(val, "proto");
 		return false; // Don't visit nested 'proto' object
 	}
@@ -96,7 +70,7 @@ bool vl::JSONWriter::AddProto(ObjectVar& value)
 		if (mCnvParams.storeTypeId)
 		{
 			rapidjson::Value val;
-			val.SetString(GetTypeId(mContext, value).c_str(), mDoc.GetAllocator());
+			val.SetString(GetTypeId(value, mContext).c_str(), mDoc.GetAllocator());
 			AddMember(val, "typeid");
 		}
 		return true;

@@ -6,38 +6,13 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
+#include "vl_fwd.h"
 
 namespace vl
 {
-	enum class Type
-	{
-		Bool,
-		Number,
-		String,
-		Object,
-		List,
-		Count
-	};
-
-	class BoolVar;
-	class NumberVar;
-	class StringVar;
-	class ObjectVar;
-	class ListVar;
-	class NullVar;
-	class AbstractVar;
-	class Visitor;
-
-	// User-friendly type names. Available from the namespace vl
-	// Like vl::Bool
-	typedef BoolVar Bool;
-	typedef NumberVar Number;
-	typedef StringVar String;
-	typedef ObjectVar Object;
-	typedef ListVar List;
-	typedef AbstractVar Var;
-	typedef NullVar Null;
-	typedef std::shared_ptr<Var> VarPtr;
+	// Return proto name if assigned
+	// TODO: pass at least a model as a context
+	std::string GetTypeId(const vl::Object& obj, const vl::Object& context);
 
 	// Polymorphic variable (pointer) creation with any supported type
 	VarPtr MakePtr(bool value);
@@ -48,7 +23,7 @@ namespace vl
 	VarPtr MakePtr(const ObjectVar& value);
 	VarPtr MakePtr(const ListVar& value);
 	VarPtr MakePtr(const NullVar& value);
-	VarPtr MakePtr(Var& value);
+	VarPtr MakePtr(const Var& value);
 	VarPtr MakePtr(); // Return a null var
 
 	// AbstractVar
@@ -56,6 +31,11 @@ namespace vl
 	class AbstractVar
 	{
 	public:
+		virtual const BoolVar& AsBool() const;
+		virtual const NumberVar& AsNumber() const;
+		virtual const StringVar& AsString() const;
+		virtual const ObjectVar& AsObject() const;
+		virtual const ListVar& AsList() const;
 		virtual BoolVar& AsBool();
 		virtual NumberVar& AsNumber();
 		virtual StringVar& AsString();
@@ -70,6 +50,7 @@ namespace vl
 		virtual VarPtr Ptr() const = 0;
 		virtual bool Accept(Visitor& v, const char* name = nullptr) { return true; }
 		virtual operator bool() const { return !IsNull(); }
+		virtual std::string ToStr() const { return ""; }
 
 	protected:
 		template <typename T>
@@ -89,11 +70,14 @@ namespace vl
 		BoolVar() = default;
 		BoolVar(bool value) : mData(value) {}
 		bool IsBool() const override { return true; }
+		const BoolVar& AsBool() const override { return *this; }
 		BoolVar& AsBool() override { return *this; }
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Val() const { return mData; }
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
+		std::string ToStr() const override;
+		BoolVar& operator=(bool val);
 
 	private:
 		bool mData = false;
@@ -107,11 +91,16 @@ namespace vl
 		NumberVar() = default;
 		NumberVar(float value) : mData(value) {}
 		bool IsNumber() const override { return true; }
+		const NumberVar& AsNumber() const override { return *this; }
 		NumberVar& AsNumber() override { return *this; }
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
 		float Val() const { return mData; }
+		std::string ToStr() const override;
+		NumberVar& operator=(int val);
+		NumberVar& operator=(double val);
+		NumberVar& operator=(float val);
 
 	private:
 		float mData = 0.f;
@@ -125,12 +114,17 @@ namespace vl
 		StringVar() = default;
 		StringVar(const std::string& value) : mData(value) {}
 		bool IsString() const override { return true; }
+		const StringVar& AsString() const override { return *this; }
 		StringVar& AsString() override { return *this; }
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		const std::string& Val() const { return mData; }
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
-
+		std::string ToStr() const override;
+		StringVar& operator=(const std::string& val) {
+			mData = val;
+			return *this;
+		}
 	private:
 		std::string mData;
 	};
@@ -142,33 +136,44 @@ namespace vl
 	class ObjectVar : public AbstractVar
 	{
 	public:
+		ObjectVar() = default;
+		ObjectVar(const ObjectDataType& dataPtr);
 		bool IsObject() const override { return true; }
+		bool operator == (const ObjectVar& right) const;
 		bool operator == (const ObjectVar& right);
-		ObjectVar& AsObject() override { return *this; }
+		operator bool() const override;
+		const ObjectVar& AsObject() const override;
+		ObjectVar& AsObject() override;
+		int Size() const;
 		Var& Set(const std::string& propName);
-		Var& Set(const std::string& propName, Var& value);
+		Var& Set(const std::string& propName, const Var& value);
 		Var& Set(const std::string& propName, const VarPtr& varPtr);
 		template <typename T>
 		Var& Set(const std::string& propName, const T& value)
 		{
-			assert(mData);
-			VarPtr var = MakePtr(value);
-			return *((*mData)[propName] = var);
+			return Set(propName, MakePtr(value));
 		}
+		const Var& Get(const std::string& propName) const;
 		Var& Get(const std::string& propName);
-		bool Has(const std::string& propName);
+		bool Has(const std::string& propName) const;
+		int PropCount() const;
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
 		ObjectVar Copy() const;
-		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred);
+		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
+		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive = false);
 		void SetPrototype(const vl::Object& proto);
+		Object& GetPrototype() const;
+		std::string ToStr() const override;
 
 	protected:
 		ObjectDataType mData = std::make_shared<PropsDataType>();
 	};
+
+	extern vl::Object nullObject;
 	
 	// ListVar
 	// Sharable
@@ -178,10 +183,16 @@ namespace vl
 	{
 	public:
 		bool IsList() const override { return true; }
+		const ListVar& AsList() const override { return *this; }
 		ListVar& AsList() override { return *this; }
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
+		int Size() const;
+		void Clear();
+		bool Remove(int index);
+		const Var& At(int index) const;
+		Var& At(int index);
 		Var& Add(const VarPtr& varPtr);
 		template <typename T>
 		Var& Add(const T& value)
@@ -191,13 +202,24 @@ namespace vl
 			mData->push_back(var);
 			return *mData->back();
 		}
+		Var& Set(int index);
+		Var& Set(int index, const Var& value);
+		Var& Set(int index, const VarPtr& varPtr);
+		template <typename T>
+		Var& Set(int index, const T& value)
+		{
+			return Set(index, MakePtr(value));
+		}
 		Var& Back();
 		bool IsEmpty() const;
 		ListVar Copy() const;
+		std::string ToStr() const override;
 
 	private:
 		ListVarDataType mData = std::make_shared<ListDataType>();
 	};
+
+	extern vl::ListVar emptyList;
 
 	// NullVar
 	// Non sharable
@@ -208,4 +230,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
 	};
+
+	// Empty var used to return it by reference to some functions
+	extern vl::NullVar emptyVar;
 }
