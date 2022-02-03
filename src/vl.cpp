@@ -482,12 +482,18 @@ namespace vl
 		return const_cast<Var&>(const_cast<const ListVar*>(this)->At(index));
 	}
 
-	Var& ListVar::Add(const VarPtr& varPtr)
+	Var& ListVar::Add(const VarPtr& varPtr, int indexBefore)
 	{
+		assert(mData);
 		if (!mData)
 			return emptyVar;
-		mData->push_back(varPtr);
-		return *mData->back();
+		if (indexBefore < mData->size())
+			return **mData->insert(mData->begin() + indexBefore, varPtr);
+		else
+		{
+			mData->push_back(varPtr);
+			return *mData->back();
+		}
 	}
 
 	Var& ListVar::Set(int index)

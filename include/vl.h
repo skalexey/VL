@@ -193,14 +193,11 @@ namespace vl
 		bool Remove(int index);
 		const Var& At(int index) const;
 		Var& At(int index);
-		Var& Add(const VarPtr& varPtr);
+		Var& Add(const VarPtr& varPtr, int indexBefore = -1);
 		template <typename T>
-		Var& Add(const T& value)
+		Var& Add(const T& value, int indexBefore = -1)
 		{
-			assert(mData);
-			VarPtr var = MakePtr(value);
-			mData->push_back(var);
-			return *mData->back();
+			return Add(MakePtr(value), indexBefore);
 		}
 		Var& Set(int index);
 		Var& Set(int index, const Var& value);
