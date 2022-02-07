@@ -17,9 +17,9 @@ include_directories("${DEPS}/rapidjson/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 if (CMAKE_CXX_COMPILER EQUAL "g++")
-	set(VL_BUILD_DIR_NAME "Build-g++")
+	set(VL_BUILD_DIR_NAME "Build-g++-cmake-${CMAKE_BUILD_TYPE}")
 else ()
-	set(VL_BUILD_DIR_NAME "Build")
+	set(VL_BUILD_DIR_NAME "Build-cmake-${CMAKE_BUILD_TYPE}")
 endif ()
 
 add_subdirectory("${VL_DIR}" "${VL_DIR}/${VL_BUILD_DIR_NAME}")
