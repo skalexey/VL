@@ -2,7 +2,8 @@ import shutil
 import os
 import sys
 
-build = "Build"
+buildPrefix = "Build"
+buildType = "Debug"
 deps = "dependencies"
 
 def systemRemoveDir(path):
@@ -18,16 +19,26 @@ def systemRemoveDir(path):
 
 def removeDir(path):
     if os.path.exists(path):
+        if not os.access(path, os.W_OK):
+            os.chmod(path, stat.S_IWUSR)
         try:
             shutil.rmtree(path)
             print("Directory '%s' removed" % path)
         except OSError as e:
-            print("%s: '%s'" % (e.strerror, e.filename))
+            print("Exception while removing a directory '%s': %s: '%s'" % (path, e.strerror, e.filename))
             print("Try to use shell command")
             systemRemoveDir(path)
 
     else:
         print("'%s' directory already removed" % path)
+
+for a in sys.argv:
+    if a == "release":
+        buildType = "Release"
+    elif a == "g++":
+        buildPrefix="Build-g++"
+
+build = buildPrefix + "-cmake-" + buildType
 
 removeDir(build)
 
