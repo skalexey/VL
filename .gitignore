@@ -1,2 +1,3 @@
-Build*
+Build-cmake-Debug
+Build-cmake-Release
 dependencies
