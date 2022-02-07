@@ -1,6 +1,7 @@
 @echo off
 
-set build=Build\
+set buildType=Debug
+set buildFolderPrefix=Build
 set cmakeTestsArg= -DVL_TESTS=ON
 set cmakeGppArg=
 
@@ -12,9 +13,11 @@ for %%x in (%*) do (
      ) else if "%%~x" == "g++" (
 	     echo --- 'g++' option passed. Build with g++ compiler
 	     set cmakeGppArg= -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gpp
-	     set build=Build-g++\
+	     set buildFolderPrefix=Build-g++
      )
 )
+
+set build=%buildFolderPrefix%-cmake-%buildType%\
 
 if not exist %build% (
 	mkdir %build%
@@ -27,7 +30,7 @@ cd %build%
 
 echo --- Configure VL with CMake
 
-cmake ..%cmakeGppArg%%cmakeTestsArg%
+cmake .. "-DCMAKE_BUILD_TYPE:STRING=%buildType%"%cmakeGppArg%%cmakeTestsArg%
 
 if %errorlevel% neq 0 (
 	echo --- CMake generation error: %errorlevel%
