@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Uncomment the next line if want to experiment with g++ compliation
 #set(CMAKE_CXX_COMPILER "g++")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 project(JSONConverter)
 option(JSON_TESTS "Add JSONTest target" OFF)
 
