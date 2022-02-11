@@ -71,6 +71,7 @@ namespace vl
 		vl::Object& mObject;
 		std::vector<ContainerInfo> mStack;
 		std::string mCurrentKey;
+		bool mKeyProcessed = true;
 		bool mCurrentProto = false;
 		std::list<vl::Object*> mUnresolvedRefs;
 		std::unordered_map<std::string, vl::Object*> mTypeRefs;

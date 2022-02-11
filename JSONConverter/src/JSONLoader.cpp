@@ -34,13 +34,14 @@ bool vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 	auto& c = GetCurrentContainer()->var;
 	if (c.IsObject())
 	{
-		if (mCurrentKey.empty())
+		if (mCurrentKey.empty() && mKeyProcessed)
 		{
 			LOG_WARNING("[JSONLoader] Seems like this is a non existent document");
 			return false;
 		}
 		c.AsObject().Set(mCurrentKey.c_str(), ptr);
 		mCurrentKey.clear();
+		mKeyProcessed = true;
 	}
 	else if (c.IsList())
 	{
@@ -80,7 +81,6 @@ vl::JSONLoader::ContainerInfo* vl::JSONLoader::PushNewContainer(bool isObject, b
 	auto& v = c->var;
 	if (v.IsObject())
 	{
-		assert(!mCurrentKey.empty());
 		auto& obj = v.AsObject();
 		if (isObject)
 			obj.Set(mCurrentKey, vl::Object());
@@ -215,6 +215,9 @@ bool vl::JSONLoader::StartObject()
 	}
 	else
 	{
+		if (c->var.IsObject())
+			if (mCurrentKey.empty())
+				LOG_WARNING("Empty key with an object body encountered in container '" << c->name << "'");
 		PushNewObject(c, mCurrentKey);
 	}
 	return true;
@@ -233,6 +236,7 @@ bool vl::JSONLoader::Key(const Ch* str, SizeType length, bool copy)
 	else
 		currentContainer->var.AsObject().Set(str);
 	mCurrentKey = str;
+	mKeyProcessed = false;
 	return true;
 }
 
