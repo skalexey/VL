@@ -25,6 +25,16 @@ void vl::JSONLoader::PopContainer()
 
 bool vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 {
+	if (mCurrentProto)
+	{
+		auto c = GetCurrentContainer();
+		LOG_WARNING("Other type than String encountered in the 'proto' field of the container '" << (c ? c->name.c_str() : "<nullptr>") << "'. The prorotype will be ignored");
+		mCurrentKey.clear();
+		mKeyProcessed = true;
+		mCurrentProto = false;
+		mUnresolvedRefs.pop_back();
+		return true;
+	}
 	bool isRoot = false;
 	if (GetCurrentContainer() == nullptr)
 	{
