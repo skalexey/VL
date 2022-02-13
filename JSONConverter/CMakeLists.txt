@@ -14,15 +14,17 @@ option(JSON_TESTS "Add JSONTest target" OFF)
 set(DEPS "dependencies")
 set(VL_DIR "${PROJECT_SOURCE_DIR}/../")
 
+#message("JSONConverter CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+
 include_directories(${PROJECT_BINARY_DIR})
 include_directories("${VL_DIR}/include")
 include_directories("${DEPS}/rapidjson/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 if (CMAKE_CXX_COMPILER EQUAL "g++")
-	set(VL_BUILD_DIR_NAME "Build-g++-cmake-${CMAKE_BUILD_TYPE}")
+	set(VL_BUILD_DIR_NAME "Build-g++")
 else ()
-	set(VL_BUILD_DIR_NAME "Build-cmake-${CMAKE_BUILD_TYPE}")
+	set(VL_BUILD_DIR_NAME "Build-cmake")
 endif ()
 
 add_subdirectory("${VL_DIR}" "${VL_DIR}/${VL_BUILD_DIR_NAME}")

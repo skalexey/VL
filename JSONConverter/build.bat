@@ -1,6 +1,7 @@
 @ECHO off
 
-set buildType=Debug
+set build=Build-cmake
+set buildConfig=Debug
 set buildFolderPrefix=Build
 set deps=dependencies\
 set cmakeTestsArg= -DJSON_TESTS=ON
@@ -19,10 +20,11 @@ for %%x in (%*) do (
 	     echo --- 'g++' option passed. Build with g++ compiler
 	     set cmakeGppArg = -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gpp
 	     set buildFolderPrefix=Build-g++
-     )
+     ) else if "%%~x" == "release" (
+		echo --- 'release' option passed. Set Release build type
+		set buildConfig=Release
+	) 
 )
-
-set build=%buildFolderPrefix%-cmake-%buildType%\
 
 : download
 
@@ -50,7 +52,7 @@ cd %build%
 
 echo --- Configure JSONConverter with CMake
 
-cmake .. "-DCMAKE_BUILD_TYPE:STRING=%buildType%"%cmakeGppArg%%cmakeTestsArg%
+cmake ..%cmakeGppArg%%cmakeTestsArg%
 
 if %errorlevel% neq 0 (
 	echo --- CMake generation error: %errorlevel%
@@ -59,7 +61,7 @@ if %errorlevel% neq 0 (
 
 echo --- Build JSONConverter with CMake
 
-cmake --build .
+cmake --build . --config=%buildConfig%
 
 if %errorlevel% neq 0 (
 	echo --- CMake build error: %errorlevel%

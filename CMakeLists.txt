@@ -11,7 +11,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(VL)
 option(VL_JSON "Connect JSON support infrastructure (JSONConverter)" OFF)
 option(VL_TESTS "Include Test target" OFF)
-message("VL CMakeLists")
+
+#message("VL CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+
 include_directories("include")
 include_directories(${PROJECT_BINARY_DIR})
 

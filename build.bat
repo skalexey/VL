@@ -1,9 +1,10 @@
 @echo off
 
-set buildType=Debug
+set buildConfig=Debug
 set buildFolderPrefix=Build
 set cmakeTestsArg= -DVL_TESTS=ON
 set cmakeGppArg=
+set build=Build-cmake
 
 for %%x in (%*) do (
 	set /A argCount+=1
@@ -14,10 +15,11 @@ for %%x in (%*) do (
 	     echo --- 'g++' option passed. Build with g++ compiler
 	     set cmakeGppArg= -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gpp
 	     set buildFolderPrefix=Build-g++
-     )
+     ) else if "%%~x" == "release" (
+		echo --- 'release' option passed. Set Release build type
+		set buildConfig=Release
+	)
 )
-
-set build=%buildFolderPrefix%-cmake-%buildType%\
 
 if not exist %build% (
 	mkdir %build%
@@ -30,7 +32,7 @@ cd %build%
 
 echo --- Configure VL with CMake
 
-cmake .. "-DCMAKE_BUILD_TYPE:STRING=%buildType%"%cmakeGppArg%%cmakeTestsArg%
+cmake ..%cmakeGppArg%%cmakeTestsArg%
 
 if %errorlevel% neq 0 (
 	echo --- CMake generation error: %errorlevel%
@@ -39,7 +41,7 @@ if %errorlevel% neq 0 (
 
 echo --- Build VL CMake
 
-cmake --build .
+cmake --build . --config=%buildConfig%
 
 if %errorlevel% neq 0 (
 	echo --- CMake build error: %errorlevel%
