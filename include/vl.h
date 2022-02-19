@@ -7,13 +7,11 @@
 #include <memory>
 #include <functional>
 #include "vl_fwd.h"
+#include "Observable.h"
 
 namespace vl
 {
 	// Return proto name if assigned
-	// TODO: pass at least a model as a context
-	std::string GetTypeId(const vl::Object& obj, const vl::Object& context);
-
 	// Polymorphic variable (pointer) creation with any supported type
 	VarPtr MakePtr(bool value);
 	VarPtr MakePtr(int value);
@@ -47,10 +45,12 @@ namespace vl
 		virtual bool IsObject() const { return false; }
 		virtual bool IsList() const { return false; }
 		virtual bool IsNull() const { return true; }
+		virtual Type GetType() const;
 		virtual VarPtr Ptr() const = 0;
 		virtual bool Accept(Visitor& v, const char* name = nullptr) { return true; }
 		virtual operator bool() const { return !IsNull(); }
 		virtual std::string ToStr() const { return ""; }
+		virtual const void* Data() const;
 
 	protected:
 		template <typename T>
@@ -62,7 +62,7 @@ namespace vl
 	};
 
 	// ======= Concrete Vars =======
-	// BoolVar
+	// BoolVar declaration
 	// Non sharable
 	class BoolVar : public AbstractVar
 	{
@@ -72,18 +72,19 @@ namespace vl
 		bool IsBool() const override { return true; }
 		const BoolVar& AsBool() const override { return *this; }
 		BoolVar& AsBool() override { return *this; }
+		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Val() const { return mData; }
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
 		std::string ToStr() const override;
 		BoolVar& operator=(bool val);
-
+		
 	private:
 		bool mData = false;
 	};
 
-	// NumberVar
+	// NumberVar declaration
 	// Non sharable
 	class NumberVar : public AbstractVar
 	{
@@ -93,6 +94,7 @@ namespace vl
 		bool IsNumber() const override { return true; }
 		const NumberVar& AsNumber() const override { return *this; }
 		NumberVar& AsNumber() override { return *this; }
+		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
@@ -106,7 +108,7 @@ namespace vl
 		float mData = 0.f;
 	};
 
-	// StringVar
+	// StringVar declaration
 	// Non sharable
 	class StringVar : public AbstractVar
 	{
@@ -116,6 +118,7 @@ namespace vl
 		bool IsString() const override { return true; }
 		const StringVar& AsString() const override { return *this; }
 		StringVar& AsString() override { return *this; }
+		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		const std::string& Val() const { return mData; }
 		bool IsNull() const override { return false; }
@@ -125,13 +128,17 @@ namespace vl
 			mData = val;
 			return *this;
 		}
+
 	private:
 		std::string mData;
 	};
 
-	// ObjectVar
+	// ObjectVar declaration
 	// Sharable
-	typedef std::unordered_map<std::string, VarPtr> PropsDataType;
+	struct PropsDataType : public Observable
+	{
+		std::unordered_map<std::string, VarPtr> data;
+	};
 	typedef std::shared_ptr<PropsDataType> ObjectDataType;
 	class ObjectVar : public AbstractVar
 	{
@@ -144,6 +151,7 @@ namespace vl
 		operator bool() const override;
 		const ObjectVar& AsObject() const override;
 		ObjectVar& AsObject() override;
+		Type GetType() const override;
 		int Size() const;
 		Var& Set(const std::string& propName);
 		Var& Set(const std::string& propName, const Var& value);
@@ -168,6 +176,10 @@ namespace vl
 		void SetPrototype(const vl::Object& proto);
 		Object& GetPrototype() const;
 		std::string ToStr() const override;
+		void Attach(Observer* o);
+		inline const void* Data() const override {
+			return mData.get();
+		}
 
 	protected:
 		ObjectDataType mData = std::make_shared<PropsDataType>();
@@ -175,9 +187,12 @@ namespace vl
 
 	extern vl::Object nullObject;
 	
-	// ListVar
+	// ListVar declaration
 	// Sharable
-	typedef std::vector<VarPtr> ListDataType;
+	struct ListDataType : public Observable
+	{
+		std::vector<VarPtr> data;
+	};
 	typedef std::shared_ptr<ListDataType> ListVarDataType;
 	class ListVar : public AbstractVar
 	{
@@ -185,6 +200,7 @@ namespace vl
 		bool IsList() const override { return true; }
 		const ListVar& AsList() const override { return *this; }
 		ListVar& AsList() override { return *this; }
+		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
@@ -211,6 +227,10 @@ namespace vl
 		bool IsEmpty() const;
 		ListVar Copy() const;
 		std::string ToStr() const override;
+		void Attach(Observer* o);
+		inline const void* Data() const override {
+			return mData.get();
+		}
 
 	private:
 		ListVarDataType mData = std::make_shared<ListDataType>();
@@ -218,14 +238,18 @@ namespace vl
 
 	extern vl::ListVar emptyList;
 
-	// NullVar
+	// NullVar declaration
 	// Non sharable
 	class NullVar : public AbstractVar
 	{
 	public:
 		bool IsNull() const override { return true; }
+		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Accept(Visitor& v, const char* name = nullptr) override;
+		inline const void* Data() const override {
+			return nullptr;
+		}
 	};
 
 	// Empty var used to return it by reference to some functions

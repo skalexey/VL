@@ -11,10 +11,10 @@
 
 using namespace rapidjson;
 
-bool vl::JSONConverter::Store(vl::Object& object, const vl::Object& context, const std::string& filePath, const CnvParams& params)
+bool vl::JSONConverter::Store(vl::Object& object, const TypeResolver& typeResolver, const std::string& filePath, const CnvParams& params)
 {
 	std::string jsonStr;
-	if (!JSONStr(object, context, jsonStr, params))
+	if (!JSONStr(object, typeResolver, jsonStr, params))
 		return false;
 	std::ofstream f;
 	f.open(filePath);
@@ -24,9 +24,9 @@ bool vl::JSONConverter::Store(vl::Object& object, const vl::Object& context, con
 	return true;
 }
 
-bool vl::JSONConverter::JSONStr(vl::Object& object, const vl::Object& context, std::string& out, const CnvParams& params)
+bool vl::JSONConverter::JSONStr(vl::Object& object, const TypeResolver& typeResolver, std::string& out, const CnvParams& params)
 {
-	vl::JSONWriter v(context, params);
+	vl::JSONWriter v(typeResolver, params);
 	object.Accept(v);
 	
 	Document& d = v.GetDocument();
@@ -49,14 +49,14 @@ bool vl::JSONConverter::JSONStr(vl::Object& object, const vl::Object& context, s
 	return true;
 }
 
-std::string vl::JSONConverter::JSONStr(Object& object, const vl::Object& context, const CnvParams& params)
+std::string vl::JSONConverter::JSONStr(Object& object, const TypeResolver& typeResolver, const CnvParams& params)
 {
 	std::string s;
-	JSONStr(object, context, s, params);
+	JSONStr(object, typeResolver, s, params);
 	return s;
 }
 
-bool vl::JSONConverter::Load(Object& object, const std::string& filePath)
+bool vl::JSONConverter::Load(Object& object, const std::string& filePath, const TypeResolver& typeResolver)
 {
 	std::ifstream f;
 	f.open(filePath);
@@ -65,7 +65,7 @@ bool vl::JSONConverter::Load(Object& object, const std::string& filePath)
 	f.close();
 	rapidjson::Document d;
 	d.Parse<0>(buf.str().c_str());
-	vl::JSONLoader loader(object);
+	vl::JSONLoader loader(object, typeResolver);
 	return d.Accept(loader);
 }
 

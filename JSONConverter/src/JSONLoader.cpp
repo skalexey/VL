@@ -2,6 +2,15 @@
 #include "JSONLoader.h"
 #include "vl.h"
 #include "Log.h"
+#ifdef LOG_ON
+	#include "Utils.h"
+#endif
+#include "JSONDefs.h"
+
+vl::JSONLoader::JSONLoader(vl::Object& object, const TypeResolver& typeResolver)
+	: mObject(object)
+	, mTypeResolver(typeResolver)
+{}
 
 vl::JSONLoader::ContainerInfo* vl::JSONLoader::GetCurrentContainer()
 {
@@ -117,18 +126,38 @@ void vl::JSONLoader::StoreUnresolvedRef(vl::Object& ref)
 
 void vl::JSONLoader::ResolveRefs()
 {
+	JSON_LOG_VERBOSE("JSONLoader::ResolveRefs");
 	for (auto it = mUnresolvedRefs.begin(); it != mUnresolvedRefs.end();)
 	{
 		auto ref = *it;
 		auto& typeId = ref->Get("typeid").AsString().Val();
+		JSON_LOG_VERBOSE(Utils::FormatStr("	typeId: %s", typeId.c_str()));
 		auto tIt = mTypeRefs.find(typeId);
 		if (tIt != mTypeRefs.end())
 		{
+			JSON_LOG_VERBOSE("		Resolved");
 			*ref = *tIt->second;
 			it = mUnresolvedRefs.erase(it);
 		}
 		else
-			++it;
+		{
+			if (mTypeResolver)
+			{
+				if (auto proto = mTypeResolver.GetProto(typeId))
+				{
+					JSON_LOG_VERBOSE("		Resolved");
+					*ref = proto;
+					it = mUnresolvedRefs.erase(it);
+				}
+				else
+					++it;
+			}
+			else
+			{
+				LOG_WARNING(Utils::FormatStr("No type resolver passed to JSONLoader. Unresolved type reference remaining: '%s'", typeId.c_str()));
+				++it;
+			}
+		}
 	}
 }
 
@@ -243,8 +272,8 @@ bool vl::JSONLoader::Key(const Ch* str, SizeType length, bool copy)
 		StoreUnresolvedRef(currentContainer->var.AsObject().Set(str, vl::Object()).AsObject());
 		mCurrentProto = true;
 	}
-	else
-		currentContainer->var.AsObject().Set(str);
+	//else // TODO: get rid of this
+	//	currentContainer->var.AsObject().Set(str);
 	mCurrentKey = str;
 	mKeyProcessed = false;
 	return true;
@@ -254,7 +283,8 @@ bool vl::JSONLoader::EndObject(SizeType memberCount)
 {
 	PopContainer();
 	// TODO: try to do it once in the end of the parsing process
-	ResolveRefs();
+	if (mStack.empty())
+		ResolveRefs();
 	return true;
 }
 

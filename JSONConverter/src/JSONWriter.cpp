@@ -3,8 +3,8 @@
 #include "JSONWriter.h"
 #include "rapidjson/document.h"
 
-vl::JSONWriter::JSONWriter(const vl::Object& context, const vl::CnvParams& params)
-	: mContext(context)
+vl::JSONWriter::JSONWriter(const TypeResolver& typeResolver, const vl::CnvParams& params)
+	: mTypeResolver(typeResolver)
 	, mCnvParams(params)
 {}
 
@@ -59,7 +59,8 @@ bool vl::JSONWriter::AddProto(ObjectVar& value)
 	if (mCnvParams.useProtoRefs)
 	{
 		rapidjson::Value val;
-		val.SetString(GetTypeId(value, mContext).c_str(), mDoc.GetAllocator());
+		auto typeId = mTypeResolver.GetTypeId(value);
+		val.SetString(typeId.c_str(), mDoc.GetAllocator());
 		AddMember(val, "proto");
 		return false; // Don't visit nested 'proto' object
 	}
@@ -70,7 +71,7 @@ bool vl::JSONWriter::AddProto(ObjectVar& value)
 		if (mCnvParams.storeTypeId)
 		{
 			rapidjson::Value val;
-			val.SetString(GetTypeId(value, mContext).c_str(), mDoc.GetAllocator());
+			val.SetString(mTypeResolver.GetTypeId(value).c_str(), mDoc.GetAllocator());
 			AddMember(val, "typeid");
 		}
 		return true;

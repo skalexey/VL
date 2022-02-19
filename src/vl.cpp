@@ -2,36 +2,16 @@
 #include <sstream>
 #include "vl.h"
 #include "visitor.h"
+#include "Log.h"
+#ifdef LOG_ON
+	#include "Utils.h"
+#endif
 
 namespace vl
 {
 	vl::NullVar emptyVar;
 	vl::Object nullObject(nullptr);
 	vl::ListVar emptyList;
-
-	std::string GetTypeId(const vl::Object& value, const vl::Object& context)
-	{
-		// TODO: avoid iteration
-		std::string type;
-		auto search = [&](const vl::Var& r) {
-			if (r.IsNull())
-				return false;
-			return !r.AsObject().ForeachProp(
-				[&](const std::string& propName, const vl::Var& propVal) {
-					if (propVal.AsObject() == value)
-					{
-						type = propName;
-						return false;
-					}
-					return true;
-				});
-		};
-		if (search(context.Get("types")))
-			return type;
-		else if (search(context.Get("private")))
-			return type;
-		return type;
-	}
 
 	VarPtr MakePtr(bool value)
 	{
@@ -88,7 +68,9 @@ namespace vl
 		else if (value.IsNull())
 			return MakePtr(NullVar());
 		else
+		{
 			return VarPtr(nullptr);
+		}
 	}
 
 	VarPtr MakePtr()
@@ -156,6 +138,15 @@ namespace vl
 		// Default implementation
 		return const_cast<ListVar&>(const_cast<const AbstractVar*>(this)->AsList());
 	}
+	Type AbstractVar::GetType() const
+	{
+		return Type::Count;
+	}
+	const void* AbstractVar::Data() const
+	{
+		// Only objects and lists have shared data
+		return nullptr;
+	}
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
@@ -163,7 +154,7 @@ namespace vl
 	//Var& ObjectVar::Set(const char* propName, const Var& value)
 	//{
 	//	assert(mData);
-	//	return *((*mData)[propName] = value.Ptr());
+	//	return *(mData->data[propName] = value.Ptr());
 	//}
 
 	ObjectVar::ObjectVar(const ObjectDataType& dataPtr)
@@ -195,9 +186,14 @@ namespace vl
 		return *this;
 	}
 
+	Type ObjectVar::GetType() const
+	{
+		return Type::Object;
+	}
+
 	int ObjectVar::Size() const
 	{
-		return mData ? mData->size() : 0;
+		return mData ? mData->data.size() : 0;
 	}
 
 	Var& ObjectVar::Set(const std::string& propName)
@@ -214,15 +210,21 @@ namespace vl
 	{
 		if (!mData)
 			return emptyVar;
-		return *((*mData)[propName] = varPtr);
+		auto& result = *(mData->data[propName] = varPtr);
+		
+		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p with name '%s'", &result, this, propName.c_str()));
+		
+		mData->Notify(vl::MakePtr(propName));
+		
+		return result;
 	}
 
 	const Var& ObjectVar::Get(const std::string& propName) const
 	{
 		if (!mData)
 			return emptyVar;
-		auto it = mData->find(propName);
-		if (it != mData->end())
+		auto it = mData->data.find(propName);
+		if (it != mData->data.end())
 			return *it->second;
 		else
 		{
@@ -241,22 +243,27 @@ namespace vl
 	{
 		if (!mData)
 			return false;
-		auto it = mData->find(propName);
-		return it != mData->end();
+		auto it = mData->data.find(propName);
+		return it != mData->data.end();
 	}
 
 	int ObjectVar::PropCount() const
 	{
 		if (!mData)
 			return 0;
-		return mData->size();
+		return mData->data.size();
 	}
 
 	bool ObjectVar::RemoveProperty(const std::string& propName)
 	{
 		if (!mData)
 			return false;
-		return mData->erase(propName) > 0;
+		if (mData->data.erase(propName) > 0)
+		{
+			mData->Notify(vl::MakePtr(propName));
+			return true;
+		}
+		return false;
 	}
 
 	bool ObjectVar::RenameProperty(const std::string& propName, const std::string& newName)
@@ -266,9 +273,10 @@ namespace vl
 		if (Has(propName))
 			if (propName != newName)
 			{
-				auto varPtr = (*mData)[propName];
-				mData->erase(propName);
-                mData->emplace(newName, varPtr);
+				auto varPtr = mData->data[propName];
+				mData->data.erase(propName);
+                mData->data.emplace(newName, varPtr);
+				mData->Notify(vl::MakePtr(propName));
 				return true;
 			}
 		return false;
@@ -282,10 +290,10 @@ namespace vl
 			return true;
 		// Process 'proto' field first
 		// to avoid overwriting overriden properties
-		auto it = mData->find("proto");
-		if (it != mData->end())
+		auto it = mData->data.find("proto");
+		if (it != mData->data.end())
 			it->second->Accept(v, it->first.c_str());
-		for (auto& [propName, prop] : *mData)
+		for (auto& [propName, prop] : mData->data)
 		{
 			if (propName == "proto")
 				continue; // Already processed above
@@ -305,7 +313,7 @@ namespace vl
 			copy.mData = nullptr;
 			return copy;
 		}
-		for (auto& [name, prop] : *mData)
+		for (auto& [name, prop] : mData->data)
 			if (prop->IsObject())
 				copy.Set(name.c_str(), MakePtr(prop->AsObject().Copy()));
 			else if (prop->IsList())
@@ -321,7 +329,7 @@ namespace vl
 			return false;
 		if (!mData)
 			return false;
-		for (auto& [propName, value] : *mData)
+		for (auto& [propName, value] : mData->data)
 		{
 			if (!pred(propName, *value))
 				return false;
@@ -353,8 +361,8 @@ namespace vl
 	{
 		if (mData)
 		{
-			auto it = mData->find("proto");
-			if (it != mData->end())
+			auto it = mData->data.find("proto");
+			if (it != mData->data.end())
 				if (it->second->IsObject())
 					return it->second->AsObject();
 		}
@@ -367,6 +375,11 @@ namespace vl
 			return "{someProto}";
 		return "{}";
 	}
+
+	void ObjectVar::Attach(Observer* o)
+	{
+		mData->Attach(o);
+	}
 	
 	// ======= End of ObjectVar definitions =======
 
@@ -377,6 +390,11 @@ namespace vl
 	// ======= Begin of NumberVar definitions =======
 
 	// ======= End of BoolVar definitions =======
+
+	Type BoolVar::GetType() const
+	{
+		return Type::Bool;
+	}
 
 	bool BoolVar::Accept(Visitor& v, const char* name)
 	{
@@ -392,6 +410,11 @@ namespace vl
 	{
 		mData = val;
 		return *this;
+	}
+
+	Type NumberVar::GetType() const
+	{
+		return Type::Number;
 	}
 
 	bool NumberVar::Accept(Visitor& v, const char* name)
@@ -424,6 +447,11 @@ namespace vl
 		return *this;
 	}
 
+	Type StringVar::GetType() const
+	{
+		return Type::String;
+	}
+
 	bool StringVar::Accept(Visitor& v, const char* name)
 	{
 		return v.VisitString(*this, name);
@@ -434,6 +462,11 @@ namespace vl
 		return Val();
 	}
 
+	Type ListVar::GetType() const
+	{
+		return Type::List;
+	}
+
 	// ======= Begin of ListVar definitions =======
 	bool ListVar::Accept(Visitor& v, const char* name)
 	{
@@ -441,7 +474,7 @@ namespace vl
 			return false;
 		if (!mData)
 			return true;
-		for (auto& prop : *mData)
+		for (auto& prop : mData->data)
 			if (!prop->Accept(v))
 				continue;
 		if (!v.EndVisitList(*this, name))
@@ -451,13 +484,13 @@ namespace vl
 
 	int ListVar::Size() const
 	{
-		return mData ? mData->size() : 0;
+		return mData ? mData->data.size() : 0;
 	}
 
 	void ListVar::Clear()
 	{
 		if (mData)
-			mData->clear();
+			mData->data.clear();
 	}
 
 	bool ListVar::Remove(int index)
@@ -465,8 +498,13 @@ namespace vl
 		if (mData)
 		{
 			if (index >= 0 && index < Size())
-				mData->erase(mData->begin() + index);
-			return true;
+			{
+				mData->data.erase(mData->data.begin() + index);
+				vl::Object info;
+				info.Set("index", index);
+				mData->Notify(vl::MakePtr(info));
+				return true;
+			}
 		}
 		return false;
 	}
@@ -474,7 +512,7 @@ namespace vl
 	const Var& ListVar::At(int index) const
 	{
 		// Don't check the range. Should be checked on the level above
-		return mData ? *(*mData)[index] : vl::emptyVar;
+		return mData ? *mData->data[index] : vl::emptyVar;
 	}
 
 	Var& ListVar::At(int index)
@@ -487,12 +525,22 @@ namespace vl
 		assert(mData);
 		if (!mData)
 			return emptyVar;
-		if (indexBefore < mData->size())
-			return **mData->insert(mData->begin() + indexBefore, varPtr);
+		int sz = mData->data.size();
+		vl::Object info;
+		if (indexBefore >= 0 && indexBefore < sz)
+		{
+			auto& result = **mData->data.insert(mData->data.begin() + indexBefore, varPtr);
+			info.Set("index", indexBefore);
+			info.Set("indexBefore", indexBefore);
+			mData->Notify(vl::MakePtr(info));
+			return result;
+		}
 		else
 		{
-			mData->push_back(varPtr);
-			return *mData->back();
+			mData->data.push_back(varPtr);
+			info.Set("index", sz);
+			mData->Notify(vl::MakePtr(info));
+			return *mData->data.back();
 		}
 	}
 
@@ -510,19 +558,27 @@ namespace vl
 	{
 		if (!mData)
 			return emptyVar;
-		if (index < 0 || index >= mData->size())
+		if (index < 0 || index >= mData->data.size())
 			return emptyVar;
-		return *((*mData)[index] = varPtr);
+		auto& result = *(mData->data[index] = varPtr);
+		
+		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p at index '%d'", &result, this, index));
+
+		vl::Object info;
+		info.Set("index", index);
+		mData->Notify(vl::MakePtr(info));
+
+		return result;
 	}
 
 	Var& ListVar::Back()
 	{
-		return mData ? *mData->back() : emptyVar;
+		return mData ? *mData->data.back() : emptyVar;
 	}
 
 	bool ListVar::IsEmpty() const
 	{
-		return mData ? mData->empty() : true;;
+		return mData ? mData->data.empty() : true;;
 	}
 
 	ListVar ListVar::Copy() const
@@ -533,7 +589,7 @@ namespace vl
 			copy.mData = nullptr;
 			return copy;
 		}
-		for (auto& prop : *mData)
+		for (auto& prop : mData->data)
 			if (prop->IsObject())
 				copy.Add(MakePtr(prop->AsObject().Copy()));
 			else if (prop->IsList())
@@ -546,10 +602,20 @@ namespace vl
 	{
 		return "[]";
 	}
+
+	void ListVar::Attach(Observer* o)
+	{
+		mData->Attach(o);
+	}
 	// ======= End of ListVarDefinitions =======
 	bool NullVar::Accept(Visitor& v, const char* name)
 	{
 		return v.VisitNull(*this, name);
+	}
+
+	Type NullVar::GetType() const
+	{
+		return Type::Null;
 	}
 
 }

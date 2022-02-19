@@ -2,13 +2,14 @@
 #include "JSONDefs.h"
 #include "rapidjson/fwd.h"
 #include "rapidjson/document.h"
+#include "TypeResolver.h"
 
 namespace vl
 {
 	class JSONWriter : public Visitor
 	{
 	public:
-		JSONWriter(const vl::Object& context, const CnvParams& params = CnvParams());
+		JSONWriter(const TypeResolver& typeResolver, const CnvParams& params = CnvParams());
 
 		bool VisitNull(NullVar& var, const char* name) override;
 		bool VisitBool(BoolVar& var, const char* name) override;
@@ -32,6 +33,6 @@ namespace vl
 		std::vector<rapidjson::Value*> mStack;
 		vl::CnvParams mCnvParams;
 		// TODO: Check for potential memory hold
-		vl::Object mContext;
+		TypeResolver mTypeResolver;
 	};
 }

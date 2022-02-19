@@ -11,6 +11,7 @@ namespace vl
 		String,
 		Object,
 		List,
+		Null,
 		Count
 	};
 
@@ -33,4 +34,8 @@ namespace vl
 	typedef AbstractVar Var;
 	typedef NullVar Null;
 	typedef std::shared_ptr<Var> VarPtr;
+
+	extern vl::Object nullObject;
+	extern vl::ListVar emptyList;
+	extern vl::NullVar emptyVar;
 }

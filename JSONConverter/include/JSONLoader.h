@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include "vl_fwd.h"
+#include "TypeResolver.h"
 
 namespace vl
 {
@@ -17,7 +18,7 @@ namespace vl
 		struct ContainerInfo;
 
 	public:
-		JSONLoader(vl::Object& object) : mObject(object) {}
+		JSONLoader(vl::Object& object, const TypeResolver& typeResolver = TypeResolver());
 		ContainerInfo* GetCurrentContainer();
 		ContainerInfo* PushContainer(vl::Var* ptr, const std::string& name);
 		void PopContainer();
@@ -75,5 +76,6 @@ namespace vl
 		bool mCurrentProto = false;
 		std::list<vl::Object*> mUnresolvedRefs;
 		std::unordered_map<std::string, vl::Object*> mTypeRefs;
+		TypeResolver mTypeResolver;
 	};
 }
