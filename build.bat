@@ -1,5 +1,6 @@
 @echo off
 
+set projectName=VL
 set buildConfig=Debug
 set buildFolderPrefix=Build
 set cmakeTestsArg= -DVL_TESTS=ON
@@ -30,7 +31,7 @@ if not exist %build% (
 
 cd %build%
 
-echo --- Configure VL with CMake
+echo --- Configure %projectName% with CMake
 
 cmake ..%cmakeGppArg%%cmakeTestsArg%
 
@@ -39,7 +40,7 @@ if %errorlevel% neq 0 (
 	goto end
 )
 
-echo --- Build VL CMake
+echo --- Build %projectName% CMake
 
 cmake --build . --config=%buildConfig%
 

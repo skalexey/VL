@@ -30,10 +30,10 @@ void WriteTest()
 	bush.Get("branches").AsList().Add(branch1);
 	vl::JSONConverter converter;
 	const char* fName = "write_test.json";
-	if (converter.Store(bush, bush, fName, { true }))
+	if (converter.Store(bush, TypeResolver(), fName, {true}))
 	{
 		std::cout << "Stored to '" << fName << "':\n";
-		std::cout << converter.JSONStr(bush, bush, { true });
+		std::cout << converter.JSONStr(bush, TypeResolver(), { true });
 	}
 	else
 		std::cout << "Store error\n";
@@ -47,7 +47,7 @@ void LoadTest()
 	const char* fName = "write_test.json";
 	if (converter.Load(object, fName))
 		std::cout << "Loaded from '" << fName << "':\n";
-	std::cout << converter.JSONStr(object, object, { true });
+	std::cout << converter.JSONStr(object, TypeResolver(), { true });
 }
 
 int main(int argc, const char* argv[])
