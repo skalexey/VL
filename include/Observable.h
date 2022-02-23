@@ -24,6 +24,18 @@ namespace vl
 		void Unsubscribe(Observer* o);
 
 	private:
-		static std::unordered_map<Observable*, std::vector<Observer*>> mObservers;
+		class ObserversStorage
+		{
+		public:
+			//~ObserversStorage();
+
+			inline std::unordered_map<Observable*, std::vector<Observer*>>& GetObservers() {
+				return mObservers;
+			}
+		private:
+			std::unordered_map<Observable*, std::vector<Observer*>> mObservers;
+		};
+
+		static ObserversStorage* mObserversStorage;
 	};
 }
