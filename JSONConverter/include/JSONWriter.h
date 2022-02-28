@@ -11,19 +11,19 @@ namespace vl
 	public:
 		JSONWriter(const TypeResolver& typeResolver, const CnvParams& params = CnvParams());
 
-		bool VisitNull(NullVar& var, const char* name) override;
-		bool VisitBool(BoolVar& var, const char* name) override;
-		bool VisitNumber(NumberVar& var, const char* name) override;
-		bool VisitString(StringVar& var, const char* name) override;
-		bool VisitObject(ObjectVar& var, const char* name) override;
-		bool EndVisitObject(ObjectVar& var, const char* name) override;
-		bool VisitList(ListVar& var, const char* name) override;
-		bool EndVisitList(ListVar& var, const char* name) override;
+		bool VisitNull(const NullVar& var, const char* name) override;
+		bool VisitBool(const BoolVar& var, const char* name) override;
+		bool VisitNumber(const NumberVar& var, const char* name) override;
+		bool VisitString(const StringVar& var, const char* name) override;
+		bool VisitObject(const ObjectVar& var, const char* name) override;
+		bool EndVisitObject(const ObjectVar& var, const char* name) override;
+		bool VisitList(const ListVar& var, const char* name) override;
+		bool EndVisitList(const ListVar& var, const char* name) override;
 		rapidjson::Document& GetDocument() { return mDoc; }
 
 	protected:
 		void AddMember(rapidjson::Value& val, const char* name);
-		bool AddProto(ObjectVar& value);
+		bool AddProto(const ObjectVar& value);
 		rapidjson::Value* GetCurrentContainer();
 		void PushCurrentContainer(rapidjson::Value* val);
 		bool PopCurrentContainer();

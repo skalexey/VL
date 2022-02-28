@@ -53,7 +53,7 @@ void vl::JSONWriter::AddMember(rapidjson::Value& val, const char* name)
 		throw "JSONWriter: unsupported container type for adding elements";
 }
 
-bool vl::JSONWriter::AddProto(ObjectVar& value)
+bool vl::JSONWriter::AddProto(const ObjectVar& value)
 {
 	auto currentVal = GetCurrentContainer();
 	if (mCnvParams.useProtoRefs)
@@ -96,7 +96,7 @@ bool vl::JSONWriter::PopCurrentContainer()
 	return true;
 }
 
-bool vl::JSONWriter::VisitNull(vl::NullVar& var, const char* name)
+bool vl::JSONWriter::VisitNull(const vl::NullVar& var, const char* name)
 {
 	rapidjson::Value val;
 	val.SetNull();
@@ -104,7 +104,7 @@ bool vl::JSONWriter::VisitNull(vl::NullVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::VisitBool(BoolVar& var, const char* name)
+bool vl::JSONWriter::VisitBool(const BoolVar& var, const char* name)
 {
 	rapidjson::Value val;
 	val.SetBool(var.Val());
@@ -112,7 +112,7 @@ bool vl::JSONWriter::VisitBool(BoolVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::VisitNumber(NumberVar& var, const char* name)
+bool vl::JSONWriter::VisitNumber(const NumberVar& var, const char* name)
 {
 	rapidjson::Value val;
 	val.SetDouble(var.Val());
@@ -120,7 +120,7 @@ bool vl::JSONWriter::VisitNumber(NumberVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::VisitString(StringVar& var, const char* name)
+bool vl::JSONWriter::VisitString(const StringVar& var, const char* name)
 {
 	rapidjson::Value val;
 	val.SetString(var.Val().c_str(), mDoc.GetAllocator());
@@ -128,7 +128,7 @@ bool vl::JSONWriter::VisitString(StringVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::VisitObject(ObjectVar& var, const char* name)
+bool vl::JSONWriter::VisitObject(const ObjectVar& var, const char* name)
 {
 	if (!var.IsNull())
 	{
@@ -156,13 +156,13 @@ bool vl::JSONWriter::VisitObject(ObjectVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::EndVisitObject(ObjectVar& var, const char* name)
+bool vl::JSONWriter::EndVisitObject(const ObjectVar& var, const char* name)
 {
 	PopCurrentContainer();
 	return true;
 }
 
-bool vl::JSONWriter::VisitList(ListVar& var, const char* name)
+bool vl::JSONWriter::VisitList(const ListVar& var, const char* name)
 {
 	if (!var.IsNull())
 	{
@@ -180,7 +180,7 @@ bool vl::JSONWriter::VisitList(ListVar& var, const char* name)
 	return true;
 }
 
-bool vl::JSONWriter::EndVisitList(ListVar& var, const char* name)
+bool vl::JSONWriter::EndVisitList(const ListVar& var, const char* name)
 {
 	PopCurrentContainer();
 	return true;

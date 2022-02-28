@@ -282,7 +282,7 @@ namespace vl
 		return false;
 	}
 	
-	bool ObjectVar::Accept(Visitor& v, const char* name)
+	bool ObjectVar::Accept(Visitor& v, const char* name) const
 	{
 		if (!v.VisitObject(*this, name))
 			return false;
@@ -396,7 +396,7 @@ namespace vl
 		return Type::Bool;
 	}
 
-	bool BoolVar::Accept(Visitor& v, const char* name)
+	bool BoolVar::Accept(Visitor& v, const char* name) const
 	{
 		return v.VisitBool(*this, name);
 	}
@@ -417,7 +417,7 @@ namespace vl
 		return Type::Number;
 	}
 
-	bool NumberVar::Accept(Visitor& v, const char* name)
+	bool NumberVar::Accept(Visitor& v, const char* name) const
 	{
 		return v.VisitNumber(*this, name);
 	}
@@ -452,7 +452,7 @@ namespace vl
 		return Type::String;
 	}
 
-	bool StringVar::Accept(Visitor& v, const char* name)
+	bool StringVar::Accept(Visitor& v, const char* name) const
 	{
 		return v.VisitString(*this, name);
 	}
@@ -468,7 +468,7 @@ namespace vl
 	}
 
 	// ======= Begin of ListVar definitions =======
-	bool ListVar::Accept(Visitor& v, const char* name)
+	bool ListVar::Accept(Visitor& v, const char* name) const
 	{
 		if (!v.VisitList(*this, name))
 			return false;
@@ -485,12 +485,6 @@ namespace vl
 	int ListVar::Size() const
 	{
 		return mData ? mData->data.size() : 0;
-	}
-
-	void ListVar::Clear()
-	{
-		if (mData)
-			mData->data.clear();
 	}
 
 	bool ListVar::Remove(int index)
@@ -608,7 +602,7 @@ namespace vl
 		mData->Attach(o);
 	}
 	// ======= End of ListVarDefinitions =======
-	bool NullVar::Accept(Visitor& v, const char* name)
+	bool NullVar::Accept(Visitor& v, const char* name) const
 	{
 		return v.VisitNull(*this, name);
 	}

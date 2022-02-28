@@ -24,7 +24,7 @@ bool vl::JSONConverter::Store(vl::Object& object, const TypeResolver& typeResolv
 	return true;
 }
 
-bool vl::JSONConverter::JSONStr(vl::Object& object, const TypeResolver& typeResolver, std::string& out, const CnvParams& params)
+bool vl::JSONConverter::JSONStr(const vl::Object& object, const TypeResolver& typeResolver, std::string& out, const CnvParams& params)
 {
 	vl::JSONWriter v(typeResolver, params);
 	object.Accept(v);
@@ -49,7 +49,7 @@ bool vl::JSONConverter::JSONStr(vl::Object& object, const TypeResolver& typeReso
 	return true;
 }
 
-std::string vl::JSONConverter::JSONStr(Object& object, const TypeResolver& typeResolver, const CnvParams& params)
+std::string vl::JSONConverter::JSONStr(const Object& object, const TypeResolver& typeResolver, const CnvParams& params)
 {
 	std::string s;
 	JSONStr(object, typeResolver, s, params);

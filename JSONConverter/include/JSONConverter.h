@@ -11,8 +11,8 @@ namespace vl
 	{
 	public:
 		bool Store(Object& object, const TypeResolver& typeResolver, const std::string& filePath, const CnvParams& params = CnvParams());
-		bool JSONStr(Object& object, const TypeResolver& typeResolver, std::string& out, const CnvParams& params = CnvParams());
-		std::string JSONStr(Object& object, const TypeResolver& typeResolver, const CnvParams& params = CnvParams());
+		bool JSONStr(const Object& object, const TypeResolver& typeResolver, std::string& out, const CnvParams& params = CnvParams());
+		std::string JSONStr(const Object& object, const TypeResolver& typeResolver, const CnvParams& params = CnvParams());
 		bool Load(Object& object, const std::string& filePath, const TypeResolver& typeResolver = TypeResolver());
 	};
 }

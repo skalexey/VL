@@ -47,7 +47,7 @@ namespace vl
 		virtual bool IsNull() const { return true; }
 		virtual Type GetType() const;
 		virtual VarPtr Ptr() const = 0;
-		virtual bool Accept(Visitor& v, const char* name = nullptr) { return true; }
+		virtual bool Accept(Visitor& v, const char* name = nullptr) const { return true; }
 		virtual operator bool() const { return !IsNull(); }
 		virtual std::string ToStr() const { return ""; }
 		virtual const void* Data() const;
@@ -76,7 +76,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Val() const { return mData; }
 		bool IsNull() const override { return false; }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
 		BoolVar& operator=(bool val);
 		
@@ -97,7 +97,7 @@ namespace vl
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return false; }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		float Val() const { return mData; }
 		std::string ToStr() const override;
 		NumberVar& operator=(int val);
@@ -122,7 +122,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		const std::string& Val() const { return mData; }
 		bool IsNull() const override { return false; }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
 		StringVar& operator=(const std::string& val) {
 			mData = val;
@@ -169,7 +169,7 @@ namespace vl
 		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		ObjectVar Copy() const;
 		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
 		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive = false);
@@ -179,6 +179,14 @@ namespace vl
 		void Attach(Observer* o);
 		inline const void* Data() const override {
 			return mData.get();
+		}
+		inline void Clear() {
+			if (!mData)
+				return;
+			mData->data.clear();
+			vl::Object info;
+			info.Set("clear", true);
+			mData->Notify(vl::MakePtr(info));
 		}
 
 	protected:
@@ -203,9 +211,16 @@ namespace vl
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		int Size() const;
-		void Clear();
+		inline void Clear() {
+			if (!mData)
+				return;
+			mData->data.clear();
+			vl::Object info;
+			info.Set("clear", true);
+			mData->Notify(vl::MakePtr(info));
+		}
 		bool Remove(int index);
 		const Var& At(int index) const;
 		Var& At(int index);
@@ -246,7 +261,7 @@ namespace vl
 		bool IsNull() const override { return true; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
-		bool Accept(Visitor& v, const char* name = nullptr) override;
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		inline const void* Data() const override {
 			return nullptr;
 		}
