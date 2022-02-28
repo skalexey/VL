@@ -51,6 +51,7 @@ namespace vl
 		virtual operator bool() const { return !IsNull(); }
 		virtual std::string ToStr() const { return ""; }
 		virtual const void* Data() const;
+		virtual vl::VarPtr Copy() const;
 
 	protected:
 		template <typename T>
@@ -170,7 +171,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		ObjectVar Copy() const;
+		vl::VarPtr Copy() const;
 		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
 		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive = false);
 		void SetPrototype(const vl::Object& proto);
@@ -240,12 +241,12 @@ namespace vl
 		}
 		Var& Back();
 		bool IsEmpty() const;
-		ListVar Copy() const;
 		std::string ToStr() const override;
 		void Attach(Observer* o);
 		inline const void* Data() const override {
 			return mData.get();
 		}
+		vl::VarPtr Copy() const override;
 
 	private:
 		ListVarDataType mData = std::make_shared<ListDataType>();

@@ -147,6 +147,12 @@ namespace vl
 		// Only objects and lists have shared data
 		return nullptr;
 	}
+
+	vl::VarPtr AbstractVar::Copy() const
+	{
+		// Default implementation
+		return Ptr();
+	}
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
@@ -305,22 +311,20 @@ namespace vl
 		return true;
 	}
 
-	ObjectVar ObjectVar::Copy() const
+	VarPtr ObjectVar::Copy() const
 	{
 		ObjectVar copy;
 		if (!mData)
 		{
 			copy.mData = nullptr;
-			return copy;
+			return MakePtr(copy);
 		}
 		for (auto& [name, prop] : mData->data)
-			if (prop->IsObject())
-				copy.Set(name.c_str(), MakePtr(prop->AsObject().Copy()));
-			else if (prop->IsList())
-				copy.Set(name.c_str(), MakePtr(prop->AsList().Copy()));
-			else
+			if (name == "proto")
 				copy.Set(name.c_str(), prop);
-		return copy;
+			else
+				copy.Set(name.c_str(), prop->Copy());
+		return MakePtr(copy);
 	}
 
 	bool ObjectVar::ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive) const
@@ -384,13 +388,6 @@ namespace vl
 	// ======= End of ObjectVar definitions =======
 
 	// ======= Begin of BoolVar definitions =======
-
-	// ======= End of BoolVar definitions =======
-
-	// ======= Begin of NumberVar definitions =======
-
-	// ======= End of BoolVar definitions =======
-
 	Type BoolVar::GetType() const
 	{
 		return Type::Bool;
@@ -412,6 +409,9 @@ namespace vl
 		return *this;
 	}
 
+	// ======= End of BoolVar definitions =======
+
+	// ======= Begin of NumberVar definitions =======
 	Type NumberVar::GetType() const
 	{
 		return Type::Number;
@@ -447,10 +447,12 @@ namespace vl
 		return *this;
 	}
 
+	// ======= Begin of StringVar definitions =======
 	Type StringVar::GetType() const
 	{
 		return Type::String;
 	}
+	// ======= End of NumberVar definitions =======
 
 	bool StringVar::Accept(Visitor& v, const char* name) const
 	{
@@ -461,6 +463,7 @@ namespace vl
 	{
 		return Val();
 	}
+	// ======= End of StringVar definitions =======
 
 	Type ListVar::GetType() const
 	{
@@ -575,23 +578,24 @@ namespace vl
 		return mData ? mData->data.empty() : true;;
 	}
 
-	ListVar ListVar::Copy() const
+	VarPtr ListVar::Copy() const
 	{
 		ListVar copy;
 		if (!mData)
 		{
 			copy.mData = nullptr;
-			return copy;
+			return MakePtr(copy);
 		}
 		for (auto& prop : mData->data)
 			if (prop->IsObject())
-				copy.Add(MakePtr(prop->AsObject().Copy()));
+				copy.Add(prop->AsObject().Copy());
 			else if (prop->IsList())
-				copy.Add(MakePtr(prop->AsList().Copy()));
+				copy.Add(prop->AsList().Copy());
 			else
 				copy.Add(prop);
-		return copy;
+		return MakePtr(copy);
 	}
+
 	std::string ListVar::ToStr() const
 	{
 		return "[]";
