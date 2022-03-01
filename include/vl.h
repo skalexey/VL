@@ -165,6 +165,7 @@ namespace vl
 		const Var& Get(const std::string& propName) const;
 		Var& Get(const std::string& propName);
 		bool Has(const std::string& propName) const;
+		bool HasOwn(const std::string& propName) const;
 		int PropCount() const;
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);

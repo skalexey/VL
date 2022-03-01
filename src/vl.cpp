@@ -250,6 +250,20 @@ namespace vl
 		if (!mData)
 			return false;
 		auto it = mData->data.find(propName);
+		if (it == mData->data.end())
+		{
+			if (auto& proto = GetPrototype())
+				return proto.Has(propName);
+			return false;
+		}
+		return true;
+	}
+
+	bool ObjectVar::HasOwn(const std::string& propName) const
+	{
+		if (!mData)
+			return false;
+		auto it = mData->data.find(propName);
 		return it != mData->data.end();
 	}
 
