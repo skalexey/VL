@@ -349,12 +349,12 @@ namespace vl
 			return false;
 		for (auto& [propName, value] : mData->data)
 		{
-			if (!pred(propName, *value))
-				return false;
 			if (recursive)
 				if (propName == "proto")
 					if (value->IsObject())
 						const_cast<const vl::ObjectVar&>(value->AsObject()).ForeachProp(pred, recursive);
+			if (!pred(propName, *value))
+				return false;
 		}
 		return true;
 	}
