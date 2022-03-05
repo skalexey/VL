@@ -523,7 +523,9 @@ namespace vl
 	const Var& ListVar::At(int index) const
 	{
 		// Don't check the range. Should be checked on the level above
-		return mData ? *mData->data[index] : vl::emptyVar;
+		if (mData && index >= 0 && index < mData->data.size())
+			return *mData->data[index];
+		return vl::emptyVar;
 	}
 
 	Var& ListVar::At(int index)
