@@ -159,6 +159,7 @@ namespace vl
 	
 	struct PropsDataType : public Observable
 	{
+		void Notify(vl::VarPtr info) override;
 		PropsContainerType data;
 	};
 	typedef std::shared_ptr<PropsDataType> ObjectDataType;
@@ -223,6 +224,7 @@ namespace vl
 	// Sharable
 	struct ListDataType : public Observable
 	{
+		void Notify(vl::VarPtr info);
 		std::vector<VarPtr> data;
 	};
 	typedef std::shared_ptr<ListDataType> ListVarDataType;

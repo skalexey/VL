@@ -167,6 +167,12 @@ namespace vl
 	//	return mData ? *mData : emptyVar;
 	//}
 
+	void PropsDataType::Notify(vl::VarPtr info)
+	{
+		info->AsObject().Set("who", "vl");
+		return Observable::Notify(info);
+	}
+
 	ObjectVar::ObjectVar(const ObjectDataType& dataPtr)
 		: mData(dataPtr)
 	{}
@@ -598,6 +604,12 @@ namespace vl
 	}
 
 	// ======= Begin of ListVar definitions =======
+
+	void ListDataType::Notify(vl::VarPtr info)
+	{
+		info->AsObject().Set("who", "vl");
+		return Observable::Notify(info);
+	}
 
 	ListInsertRet ListInsertRet::Null()
 	{
