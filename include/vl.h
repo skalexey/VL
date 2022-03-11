@@ -134,11 +134,32 @@ namespace vl
 		std::string mData;
 	};
 
+	typedef std::unordered_map<std::string, VarPtr> PropsContainerType;
+
+	// Return type of ObjectVar::Set
+	// Includes id and data
+	// TODO: support
+	//struct ObjectSetRet {
+	//	bool addition = false
+	//	ObjectInsertRet() = default;
+	//	ObjectSetRet(bool addition, vl::Var& data)
+	//		: addition(addition)
+	//		, mData(&data)
+	//	{}
+	//	vl::Var& data();
+	//	inline operator bool() { return mData != nullptr; }
+	//	static ObjectSetRet Null();
+
+	//private:
+	//	vl::Var* mData = nullptr;
+	//};
+
 	// ObjectVar declaration
 	// Sharable
+	
 	struct PropsDataType : public Observable
 	{
-		std::unordered_map<std::string, VarPtr> data;
+		PropsContainerType data;
 	};
 	typedef std::shared_ptr<PropsDataType> ObjectDataType;
 	class ObjectVar : public AbstractVar
@@ -178,18 +199,16 @@ namespace vl
 		void SetPrototype(const vl::Object& proto);
 		Object& GetPrototype() const;
 		std::string ToStr() const override;
-		void Attach(Observer* o);
+		inline void Attach(Observer* o) {
+			mData->Attach(o);
+		}
+		inline void Detach(Observer* o) {
+			mData->Detach(o);
+		}
 		inline const void* Data() const override {
 			return mData.get();
 		}
-		inline void Clear() {
-			if (!mData)
-				return;
-			mData->data.clear();
-			vl::Object info;
-			info.Set("clear", true);
-			mData->Notify(vl::MakePtr(info));
-		}
+		void Clear(bool recursive = false);
 
 	protected:
 		ObjectDataType mData = std::make_shared<PropsDataType>();
@@ -197,6 +216,9 @@ namespace vl
 
 	extern vl::Object nullObject;
 	
+	// Empty var used to return it by reference to some functions
+	extern vl::NullVar emptyVar;
+
 	// ListVar declaration
 	// Sharable
 	struct ListDataType : public Observable
@@ -204,6 +226,23 @@ namespace vl
 		std::vector<VarPtr> data;
 	};
 	typedef std::shared_ptr<ListDataType> ListVarDataType;
+
+	// Return type of ListVar::Add and Set operations
+	// Includes index and data
+	struct ListInsertRet {
+		int index = -1;
+		ListInsertRet() = default;
+		ListInsertRet(int index, vl::Var& data)
+			: index(index)
+			, mData(&data)
+		{}
+		vl::Var& data();
+		inline operator bool() { return index >= 0; }
+		static ListInsertRet Null();
+	private:
+		vl::Var* mData = nullptr;
+	};
+
 	class ListVar : public AbstractVar
 	{
 	public:
@@ -214,29 +253,24 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		int Size() const;
-		inline void Clear() {
-			if (!mData)
-				return;
-			mData->data.clear();
-			vl::Object info;
-			info.Set("clear", true);
-			mData->Notify(vl::MakePtr(info));
+		inline int Size() const {
+			return mData ? mData->data.size() : 0;
 		}
+		void Clear(bool recursive = false);
 		bool Remove(int index);
 		const Var& At(int index) const;
 		Var& At(int index);
-		Var& Add(const VarPtr& varPtr, int indexBefore = -1);
+		ListInsertRet Add(const VarPtr& varPtr, int indexBefore = -1);
 		template <typename T>
-		Var& Add(const T& value, int indexBefore = -1)
+		ListInsertRet Add(const T& value, int indexBefore = -1)
 		{
 			return Add(MakePtr(value), indexBefore);
 		}
-		Var& Set(int index);
-		Var& Set(int index, const Var& value);
-		Var& Set(int index, const VarPtr& varPtr);
+		ListInsertRet Set(int index);
+		ListInsertRet Set(int index, const Var& value);
+		ListInsertRet Set(int index, const VarPtr& varPtr);
 		template <typename T>
-		Var& Set(int index, const T& value)
+		ListInsertRet Set(int index, const T& value)
 		{
 			return Set(index, MakePtr(value));
 		}
@@ -269,6 +303,5 @@ namespace vl
 		}
 	};
 
-	// Empty var used to return it by reference to some functions
-	extern vl::NullVar emptyVar;
+	
 }

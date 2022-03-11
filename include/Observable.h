@@ -17,7 +17,12 @@ namespace vl
 		bool Attach(Observer* o);
 		bool Detach(Observer* o);
 		virtual ~Observable();
-		void Notify(vl::VarPtr info = nullptr);
+		virtual void Notify(vl::VarPtr info = nullptr);
+		inline bool HasSubscribers() {
+			if (auto subs = GetObservers())
+				return !subs->empty(); // TODO get rid of this check
+			return false;
+		}
 
 	protected:
 		std::vector<Observer*>* GetObservers();

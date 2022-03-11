@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 
 namespace vl
 {
@@ -23,6 +24,7 @@ namespace vl
 	class NullVar;
 	class AbstractVar;
 	class Visitor;
+	class ObjectSetRet;
 
 	// User-friendly type names. Available from the namespace vl
 	// Like vl::Bool
@@ -38,4 +40,7 @@ namespace vl
 	extern vl::Object nullObject;
 	extern vl::ListVar emptyList;
 	extern vl::NullVar emptyVar;
+
+	typedef std::function<void(const vl::Object&)> VoidCbObject;
+	typedef std::function<bool(const vl::Object&)> BoolCbObject;
 }

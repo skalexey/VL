@@ -156,11 +156,15 @@ namespace vl
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
-
-	//Var& ObjectVar::Set(const char* propName, const Var& value)
+	// TODO: support
+	//ObjectInsertRet ObjectInsertRet::Null()
 	//{
-	//	assert(mData);
-	//	return *(mData->data[propName] = value.Ptr());
+	//	return { "", emptyVar };
+	//}
+
+	//vl::Var& ObjectInsertRet::data()
+	//{
+	//	return mData ? *mData : emptyVar;
 	//}
 
 	ObjectVar::ObjectVar(const ObjectDataType& dataPtr)
@@ -216,13 +220,46 @@ namespace vl
 	{
 		if (!mData)
 			return emptyVar;
-		auto& result = *(mData->data[propName] = varPtr);
+
+		Var* ret = nullptr;
+
+		if (mData->HasSubscribers())
+		{
+			vl::Object info;
+			auto ptr = vl::MakePtr(info);
+			info.Set("before", true);
+
+			auto it = mData->data.find(propName);
+			if (it == mData->data.end())
+			{
+				// Send "before" notification
+				info.Set("add", propName);
+				mData->Notify(ptr);
+				// Set the data
+				ret = &*(mData->data[propName] = varPtr);
+			}
+			else
+			{
+				// Send "before" notification
+				info.Set("set", propName);
+				mData->Notify(ptr);
+				// Set the data
+				ret = &*(it->second = varPtr);
+			}
+			// Send "after" notification
+			info.RemoveProperty("before");
+			info.Set("after", true);
+			mData->Notify(ptr);
+		}
+		else
+		{
+			auto result = mData->data.emplace(propName, varPtr);
+			ret = &*(result.first->second);
+		}
 		
 		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p with name '%s'", &result, this, propName.c_str()));
-		
-		mData->Notify(vl::MakePtr(propName));
-		
-		return result;
+
+		return *ret;
 	}
 
 	const Var& ObjectVar::Get(const std::string& propName) const
@@ -278,9 +315,30 @@ namespace vl
 	{
 		if (!mData)
 			return false;
-		if (mData->data.erase(propName) > 0)
+		
+		auto it = mData->data.find(propName);
+		if (it != mData->data.end())
 		{
-			mData->Notify(vl::MakePtr(propName));
+			if (mData->HasSubscribers())
+			{
+				vl::Object info;
+				auto ptr = vl::MakePtr(info);
+				// Send "before" notification
+				info.Set("before", true);
+				info.Set("remove", propName);
+				mData->Notify(ptr);
+				// Erase the data
+				mData->data.erase(it);
+				// Send "after" notification
+				info.RemoveProperty("before");
+				info.Set("after", true);
+				mData->Notify(ptr);
+			}
+			else
+			{
+				mData->data.erase(it);
+			}
+
 			return true;
 		}
 		return false;
@@ -294,9 +352,29 @@ namespace vl
 			if (propName != newName)
 			{
 				auto varPtr = mData->data[propName];
-				mData->data.erase(propName);
-                mData->data.emplace(newName, varPtr);
-				mData->Notify(vl::MakePtr(propName));
+				if (mData->HasSubscribers())
+				{
+					vl::Object info;
+					auto ptr = vl::MakePtr(info);
+					// Send "before" notification
+					info.Set("before", true);
+					info.Set("rename", propName);
+					info.Set("newId", newName);
+					mData->Notify(ptr);
+
+					mData->data.erase(propName);
+					mData->data.emplace(newName, varPtr);
+
+					// Send "before" notification
+					info.RemoveProperty("before");
+					info.Set("after", true);
+					mData->Notify(ptr);
+				}
+				else
+				{
+					mData->data.erase(propName);
+					mData->data.emplace(newName, varPtr);
+				}
 				return true;
 			}
 		return false;
@@ -387,6 +465,44 @@ namespace vl
 		return nullObject;
 	}
 
+	void ObjectVar::Clear(bool recursive) {
+		if (!mData)
+			return;
+
+		auto clear = [&]() {
+			if (recursive)
+			{
+				ForeachProp([&](auto& k, auto& e) {
+					if (e.IsObject())
+						const_cast<vl::Var&>(e).AsObject().Clear(recursive);
+					else if (e.IsList())
+						const_cast<vl::Var&>(e).AsList().Clear(recursive);
+					return true;
+				});
+				mData->data.clear();
+			}
+			else
+				mData->data.clear();
+		};
+
+		if (mData->HasSubscribers())
+		{
+			vl::Object info;
+			auto ptr = vl::MakePtr(info);
+			info.Set("clear", true);
+			info.Set("before", true);
+			mData->Notify(ptr);
+
+			clear();
+
+			info.RemoveProperty("before");
+			info.Set("after", true);
+			mData->Notify(ptr);
+		}
+		else
+			clear();
+	}
+
 	std::string ObjectVar::ToStr() const
 	{
 		if (auto& proto = GetPrototype())
@@ -394,10 +510,7 @@ namespace vl
 		return "{}";
 	}
 
-	void ObjectVar::Attach(Observer* o)
-	{
-		mData->Attach(o);
-	}
+
 	
 	// ======= End of ObjectVar definitions =======
 
@@ -485,6 +598,17 @@ namespace vl
 	}
 
 	// ======= Begin of ListVar definitions =======
+
+	ListInsertRet ListInsertRet::Null()
+	{
+		return { -1, emptyVar };
+	}
+
+	vl::Var& ListInsertRet::data()
+	{
+		return mData ? *mData : emptyVar;
+	}
+
 	bool ListVar::Accept(Visitor& v, const char* name) const
 	{
 		if (!v.VisitList(*this, name))
@@ -499,9 +623,44 @@ namespace vl
 		return true;
 	}
 
-	int ListVar::Size() const
+	void ListVar::Clear(bool recursive)
 	{
-		return mData ? mData->data.size() : 0;
+		if (!mData)
+			return;
+
+		auto clear = [&]() {
+			if (recursive)
+			{
+				auto sz = Size();
+				for (int i = 0; i < sz; i++)
+				{
+					auto& e = mData->data[i];
+					if (e->IsObject())
+						e->AsObject().Clear(recursive);
+					else if (e->IsList())
+						e->AsList().Clear(recursive);
+				}
+				mData->data.clear();
+			}
+			else
+				mData->data.clear();
+		};
+
+		if (mData->HasSubscribers())
+		{
+			vl::Object info;
+			info.Set("clear", true);
+			info.Set("before", true);
+			mData->Notify(vl::MakePtr(info));
+
+			clear();
+
+			info.RemoveProperty("before");
+			info.Set("after", true);
+			mData->Notify(vl::MakePtr(info));
+		}
+		else
+			clear();
 	}
 
 	bool ListVar::Remove(int index)
@@ -533,11 +692,11 @@ namespace vl
 		return const_cast<Var&>(const_cast<const ListVar*>(this)->At(index));
 	}
 
-	Var& ListVar::Add(const VarPtr& varPtr, int indexBefore)
+	ListInsertRet ListVar::Add(const VarPtr& varPtr, int indexBefore)
 	{
 		assert(mData);
 		if (!mData)
-			return emptyVar;
+			return ListInsertRet::Null();
 		int sz = mData->data.size();
 		vl::Object info;
 		if (indexBefore >= 0 && indexBefore < sz)
@@ -546,33 +705,33 @@ namespace vl
 			info.Set("index", indexBefore);
 			info.Set("indexBefore", indexBefore);
 			mData->Notify(vl::MakePtr(info));
-			return result;
+			return { indexBefore, result };
 		}
 		else
 		{
 			mData->data.push_back(varPtr);
 			info.Set("index", sz);
 			mData->Notify(vl::MakePtr(info));
-			return *mData->data.back();
+			return { sz, *mData->data.back() };
 		}
 	}
 
-	Var& ListVar::Set(int index)
+	ListInsertRet ListVar::Set(int index)
 	{
 		return Set(index, MakePtr(NullVar()));
 	}
 
-	Var& ListVar::Set(int index, const Var& value)
+	ListInsertRet ListVar::Set(int index, const Var& value)
 	{
 		return Set(index, MakePtr(value));
 	}
 
-	Var& ListVar::Set(int index, const VarPtr& varPtr)
+	ListInsertRet ListVar::Set(int index, const VarPtr& varPtr)
 	{
 		if (!mData)
-			return emptyVar;
+			return ListInsertRet::Null();
 		if (index < 0 || index >= mData->data.size())
-			return emptyVar;
+			return ListInsertRet::Null();
 		auto& result = *(mData->data[index] = varPtr);
 		
 		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p at index '%d'", &result, this, index));
@@ -581,7 +740,7 @@ namespace vl
 		info.Set("index", index);
 		mData->Notify(vl::MakePtr(info));
 
-		return result;
+		return { index, result };
 	}
 
 	Var& ListVar::Back()
@@ -631,5 +790,4 @@ namespace vl
 	{
 		return Type::Null;
 	}
-
 }
