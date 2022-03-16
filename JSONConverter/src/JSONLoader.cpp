@@ -133,10 +133,19 @@ void vl::JSONLoader::ResolveRefs()
 		auto& typeId = ref->Get("typeid").AsString().Val();
 		JSON_LOG_VERBOSE(Utils::FormatStr("	typeId: %s", typeId.c_str()));
 		auto tIt = mTypeRefs.find(typeId);
+		auto moveSubscribers = [&](vl::Object& from, vl::Object& to) {
+			const auto* observable = from.Observable();
+			if (auto observers = observable->GetObservers())
+				for (auto o : *observers)
+					if (auto info = o->GetSubscriptionInfo(observable))
+						to.Attach(o, info->title);
+		};
 		if (tIt != mTypeRefs.end())
 		{
 			JSON_LOG_VERBOSE("		Resolved");
-			*ref = *tIt->second;
+			auto& proto = *tIt->second;
+			moveSubscribers(*ref, proto);
+			*ref = proto;
 			it = mUnresolvedRefs.erase(it);
 		}
 		else
@@ -146,6 +155,7 @@ void vl::JSONLoader::ResolveRefs()
 				if (auto proto = mTypeResolver.GetProto(typeId))
 				{
 					JSON_LOG_VERBOSE("		Resolved");
+					moveSubscribers(*ref, proto);
 					*ref = proto;
 					it = mUnresolvedRefs.erase(it);
 				}

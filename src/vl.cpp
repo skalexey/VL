@@ -2,6 +2,8 @@
 #include <sstream>
 #include "vl.h"
 #include "visitor.h"
+#include "VLNotifications.h"
+
 #include "Log.h"
 #ifdef LOG_ON
 	#include "Utils.h"
@@ -173,6 +175,24 @@ namespace vl
 		return Observable::Notify(info);
 	}
 
+	void PropsDataType::Update(Observable* sender, vl::VarPtr info)
+	{
+		auto& o = info->AsObject();
+		if (o.Get("who").AsString().Val() != "vl")
+			return;
+		if (auto subscriptionInfo = GetSubscriptionInfo(sender))
+		{
+			// Redirect nested object update (proto and others)
+			// to all subscribers
+			INIT_NOTIFY
+			vl::Object propUpdate;
+			propUpdate.Set("id", subscriptionInfo->title);
+			propUpdate.Set("data", info);
+			NOTIFY_ADD("propUpdate", propUpdate);
+			SEND_NOTIFY(this)
+		}
+	}
+
 	ObjectVar::ObjectVar(const ObjectDataType& dataPtr)
 		: mData(dataPtr)
 	{}
@@ -231,37 +251,35 @@ namespace vl
 
 		if (mData->HasSubscribers())
 		{
-			vl::Object info;
-			auto ptr = vl::MakePtr(info);
-			info.Set("before", true);
-
+			INIT_NOTIFY_BEFORE
 			auto it = mData->data.find(propName);
 			if (it == mData->data.end())
 			{
 				// Send "before" notification
-				info.Set("add", propName);
-				mData->Notify(ptr);
+				SEND_NOTIFY_BEFORE("add", propName, mData)
 				// Set the data
 				ret = &*(mData->data[propName] = varPtr);
 			}
 			else
 			{
 				// Send "before" notification
-				info.Set("set", propName);
-				mData->Notify(ptr);
+				SEND_NOTIFY_BEFORE("set", propName, mData);
 				// Set the data
 				ret = &*(it->second = varPtr);
 			}
 			// Send "after" notification
-			info.RemoveProperty("before");
-			info.Set("after", true);
-			mData->Notify(ptr);
+			NOTIFY_AFTER(mData)
 		}
 		else
 		{
 			auto result = mData->data.emplace(propName, varPtr);
 			ret = &*(result.first->second);
 		}
+
+		if (ret->IsObject())
+			ret->AsObject().Attach(mData.get(), propName);
+		//else if (ret->IsList())
+		//	ret->AsList().Attach(mData.get(), propName);
 		
 		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p with name '%s'", &result, this, propName.c_str()));
 
@@ -310,6 +328,54 @@ namespace vl
 		return it != mData->data.end();
 	}
 
+	std::shared_ptr<std::string> ObjectVar::GetRelativePath(const std::string& propName) const
+	{
+		return getRelativePathRecursive(propName);
+	}
+
+	std::shared_ptr<std::string> ObjectVar::getRelativePathRecursive(const std::string& propName, const std::string& path) const
+	{
+		if (!mData)
+			return nullptr;
+		auto it = mData->data.find(propName);
+		if (it == mData->data.end())
+		{
+			if (auto& proto = GetPrototype())
+				return proto.getRelativePathRecursive(propName, (path.empty() ? "proto" : (path + ".proto")));
+			return nullptr;
+		}
+		return std::make_shared<std::string>(path);
+	}
+
+	bool ObjectVar::Overridden(const std::string& propName) const
+	{
+		return overriddenRecursive(propName);
+	}
+
+	bool ObjectVar::overriddenRecursive(const std::string& propName, int count) const
+	{
+		if (!mData)
+			return nullptr;
+		auto it = mData->data.find(propName);
+		if (it == mData->data.end())
+		{
+			// Not found. Go through the proto chain and search there
+			if (auto& proto = GetPrototype())
+				return proto.overriddenRecursive(propName, count);
+			return nullptr;
+		}
+		// Found one
+		if (count == 0)
+		{
+			if (auto& proto = GetPrototype())
+				return proto.overriddenRecursive(propName, ++count);
+			else
+				return false;
+		}
+		else
+			return true;
+	}
+
 	int ObjectVar::PropCount() const
 	{
 		if (!mData)
@@ -327,18 +393,18 @@ namespace vl
 		{
 			if (mData->HasSubscribers())
 			{
-				vl::Object info;
-				auto ptr = vl::MakePtr(info);
-				// Send "before" notification
-				info.Set("before", true);
-				info.Set("remove", propName);
-				mData->Notify(ptr);
+				NOTIFY_BEFORE("remove", propName, mData)
+				// Unsubscribe from it's updates
+				auto& v = it->second;
+				if (v->IsObject())
+					v->AsObject().Detach(mData.get());
+				else if (v->IsList())
+					v->AsList().Detach(mData.get());
+
 				// Erase the data
 				mData->data.erase(it);
 				// Send "after" notification
-				info.RemoveProperty("before");
-				info.Set("after", true);
-				mData->Notify(ptr);
+				NOTIFY_AFTER(mData)
 			}
 			else
 			{
@@ -360,21 +426,14 @@ namespace vl
 				auto varPtr = mData->data[propName];
 				if (mData->HasSubscribers())
 				{
-					vl::Object info;
-					auto ptr = vl::MakePtr(info);
-					// Send "before" notification
-					info.Set("before", true);
-					info.Set("rename", propName);
-					info.Set("newId", newName);
-					mData->Notify(ptr);
-
+					INIT_NOTIFY_BEFORE
+					NOTIFY_ADD("newId", newName)
+					SEND_NOTIFY_BEFORE("rename", propName, mData);
+					
 					mData->data.erase(propName);
 					mData->data.emplace(newName, varPtr);
 
-					// Send "before" notification
-					info.RemoveProperty("before");
-					info.Set("after", true);
-					mData->Notify(ptr);
+					NOTIFY_AFTER(mData)
 				}
 				else
 				{
@@ -493,17 +552,9 @@ namespace vl
 
 		if (mData->HasSubscribers())
 		{
-			vl::Object info;
-			auto ptr = vl::MakePtr(info);
-			info.Set("clear", true);
-			info.Set("before", true);
-			mData->Notify(ptr);
-
+			NOTIFY_BEFORE("clear", true, mData);
 			clear();
-
-			info.RemoveProperty("before");
-			info.Set("after", true);
-			mData->Notify(ptr);
+			NOTIFY_AFTER(mData)
 		}
 		else
 			clear();
@@ -611,6 +662,24 @@ namespace vl
 		return Observable::Notify(info);
 	}
 
+	void ListDataType::Update(Observable* sender, vl::VarPtr info)
+	{
+		auto& o = info->AsObject();
+		if (o.Get("who").AsString().Val() != "vl")
+			return;
+		if (auto subscriptionInfo = GetSubscriptionInfo(sender))
+		{
+			// Redirect nested object update (proto and others)
+			// to all subscribers
+			INIT_NOTIFY
+			vl::Object propUpdate;
+			propUpdate.Set("id", subscriptionInfo->title);
+			propUpdate.Set("data", info);
+			NOTIFY_ADD("propUpdate", propUpdate);
+			SEND_NOTIFY(this)
+		}
+	}
+
 	ListInsertRet ListInsertRet::Null()
 	{
 		return { -1, emptyVar };
@@ -660,16 +729,9 @@ namespace vl
 
 		if (mData->HasSubscribers())
 		{
-			vl::Object info;
-			info.Set("clear", true);
-			info.Set("before", true);
-			mData->Notify(vl::MakePtr(info));
-
+			NOTIFY_BEFORE("clear", true, mData);
 			clear();
-
-			info.RemoveProperty("before");
-			info.Set("after", true);
-			mData->Notify(vl::MakePtr(info));
+			NOTIFY_AFTER(mData)
 		}
 		else
 			clear();
@@ -681,10 +743,9 @@ namespace vl
 		{
 			if (index >= 0 && index < Size())
 			{
+				NOTIFY_BEFORE("remove", index, mData)
 				mData->data.erase(mData->data.begin() + index);
-				vl::Object info;
-				info.Set("index", index);
-				mData->Notify(vl::MakePtr(info));
+				NOTIFY_AFTER(mData)
 				return true;
 			}
 		}
@@ -710,20 +771,21 @@ namespace vl
 		if (!mData)
 			return ListInsertRet::Null();
 		int sz = mData->data.size();
-		vl::Object info;
+		
+		INIT_NOTIFY_BEFORE
 		if (indexBefore >= 0 && indexBefore < sz)
 		{
+			NOTIFY_ADD("indexBefore", indexBefore)
+			SEND_NOTIFY_BEFORE("add", indexBefore, mData)
 			auto& result = **mData->data.insert(mData->data.begin() + indexBefore, varPtr);
-			info.Set("index", indexBefore);
-			info.Set("indexBefore", indexBefore);
-			mData->Notify(vl::MakePtr(info));
+			NOTIFY_AFTER(mData)
 			return { indexBefore, result };
 		}
 		else
 		{
+			SEND_NOTIFY_BEFORE("add", sz, mData)
 			mData->data.push_back(varPtr);
-			info.Set("index", sz);
-			mData->Notify(vl::MakePtr(info));
+			NOTIFY_AFTER(mData)
 			return { sz, *mData->data.back() };
 		}
 	}
@@ -744,14 +806,13 @@ namespace vl
 			return ListInsertRet::Null();
 		if (index < 0 || index >= mData->data.size())
 			return ListInsertRet::Null();
+
+		NOTIFY_BEFORE("set", index, mData)
 		auto& result = *(mData->data[index] = varPtr);
 		
 		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p at index '%d'", &result, this, index));
-
-		vl::Object info;
-		info.Set("index", index);
-		mData->Notify(vl::MakePtr(info));
-
+		
+		NOTIFY_AFTER(mData)
 		return { index, result };
 	}
 
@@ -788,10 +849,6 @@ namespace vl
 		return "[]";
 	}
 
-	void ListVar::Attach(Observer* o)
-	{
-		mData->Attach(o);
-	}
 	// ======= End of ListVarDefinitions =======
 	bool NullVar::Accept(Visitor& v, const char* name) const
 	{

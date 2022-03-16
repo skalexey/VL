@@ -8,6 +8,7 @@
 #include <functional>
 #include "vl_fwd.h"
 #include "Observable.h"
+#include "Observer.h"
 
 namespace vl
 {
@@ -156,10 +157,15 @@ namespace vl
 
 	// ObjectVar declaration
 	// Sharable
-	
-	struct PropsDataType : public Observable
+	/// <summary>
+	///  Object is both an observable and observer.
+	///  It observes its nested objects's changes
+	/// </summary>
+	/// <param name="info"></param>
+	struct PropsDataType : public Observable, public Observer
 	{
 		void Notify(vl::VarPtr info) override;
+		void Update(Observable* sender, vl::VarPtr info = nullptr) override;
 		PropsContainerType data;
 	};
 	typedef std::shared_ptr<PropsDataType> ObjectDataType;
@@ -188,6 +194,8 @@ namespace vl
 		Var& Get(const std::string& propName);
 		bool Has(const std::string& propName) const;
 		bool HasOwn(const std::string& propName) const;
+		std::shared_ptr<std::string> GetRelativePath(const std::string& propName) const;
+		bool Overridden(const std::string& propName) const;
 		int PropCount() const;
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);
@@ -200,8 +208,8 @@ namespace vl
 		void SetPrototype(const vl::Object& proto);
 		Object& GetPrototype() const;
 		std::string ToStr() const override;
-		inline void Attach(Observer* o) {
-			mData->Attach(o);
+		inline void Attach(Observer* o, const std::string& title = "") {
+			mData->Attach(o, title);
 		}
 		inline void Detach(Observer* o) {
 			mData->Detach(o);
@@ -209,7 +217,14 @@ namespace vl
 		inline const void* Data() const override {
 			return mData.get();
 		}
+
+		inline Observable* Observable() {
+			return mData.get();
+		}
 		void Clear(bool recursive = false);
+	protected:
+		std::shared_ptr<std::string> getRelativePathRecursive(const std::string& propName, const std::string& path = "") const;
+		bool overriddenRecursive(const std::string& propName, int count = 0) const;
 
 	protected:
 		ObjectDataType mData = std::make_shared<PropsDataType>();
@@ -222,9 +237,10 @@ namespace vl
 
 	// ListVar declaration
 	// Sharable
-	struct ListDataType : public Observable
+	struct ListDataType : public Observable, public Observer
 	{
 		void Notify(vl::VarPtr info);
+		void Update(Observable* sender, vl::VarPtr info = nullptr) override;
 		std::vector<VarPtr> data;
 	};
 	typedef std::shared_ptr<ListDataType> ListVarDataType;
@@ -279,7 +295,12 @@ namespace vl
 		Var& Back();
 		bool IsEmpty() const;
 		std::string ToStr() const override;
-		void Attach(Observer* o);
+		inline void Attach(Observer* o, const std::string& title = "") {
+			mData->Attach(o);
+		}
+		inline void Detach(Observer* o) {
+			mData->Detach(o);
+		}
 		inline const void* Data() const override {
 			return mData.get();
 		}
