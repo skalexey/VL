@@ -7,17 +7,27 @@ namespace vl
 {
 	class Observable;
 
+	struct SubscriptionInfo
+	{
+		Observable* observervable;
+		std::string title;
+	};
+
 	class Observer
 	{
 		friend class Observable;
 	public:
 		virtual ~Observer();
-		virtual void Update(vl::VarPtr info = nullptr) = 0;
+		virtual void Update(Observable* sender, vl::VarPtr info = nullptr) = 0;
+		const SubscriptionInfo* GetSubscriptionInfo(const Observable* o) const;
+		const std::unordered_map<Observable*, SubscriptionInfo>* GetSubscriptions() const;
 
 	protected:
-		std::vector<Observable*>* GetSubscriptions();
+		std::unordered_map<Observable*, SubscriptionInfo>* GetSubscriptions();
+		SubscriptionInfo* GetSubscriptionInfo(Observable* o);
 
 	private:
-		static std::unordered_map<Observer*, std::vector<Observable*>> mSubscriptions;
+		static std::unordered_map<Observer*, std::unordered_map<Observable*, SubscriptionInfo>> mSubscriptions;
+		std::string mTitle;
 	};
 }

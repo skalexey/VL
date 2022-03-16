@@ -26,6 +26,9 @@ namespace vl
 	class Visitor;
 	class ObjectSetRet;
 
+	class Observable;
+	class Observer;
+
 	// User-friendly type names. Available from the namespace vl
 	// Like vl::Bool
 	typedef BoolVar Bool;

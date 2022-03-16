@@ -14,7 +14,7 @@ namespace vl
 
 	public:
 		Observable();
-		bool Attach(Observer* o);
+		bool Attach(Observer* o, const std::string& title = "");
 		bool Detach(Observer* o);
 		virtual ~Observable();
 		virtual void Notify(vl::VarPtr info = nullptr);
@@ -23,6 +23,7 @@ namespace vl
 				return !subs->empty(); // TODO get rid of this check
 			return false;
 		}
+		const std::vector<Observer*>* GetObservers() const;
 
 	protected:
 		std::vector<Observer*>* GetObservers();

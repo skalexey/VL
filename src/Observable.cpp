@@ -16,7 +16,7 @@ namespace vl
 		LOG_VERBOSE(Utils::FormatStr("	%p->Unsubscribe(%p)", this, o));
 		auto sc = o->GetSubscriptions();
 		assert(sc != nullptr);
-		auto scIt = std::find(sc->begin(), sc->end(), this);
+		auto scIt = sc->find(this);
 		assert(scIt != sc->end());
 		sc->erase(scIt);
 	}
@@ -26,7 +26,7 @@ namespace vl
 		LOG_VERBOSE(Utils::FormatStr("Observable() %p", this));
 	}
 
-	bool Observable::Attach(Observer* o)
+	bool Observable::Attach(Observer* o, const std::string& title)
 	{
 		LOG_VERBOSE(Utils::FormatStr("%p->Attach(%p)", this, o));
 		if (auto observers = GetObservers())
@@ -40,8 +40,8 @@ namespace vl
 		}
 		mObserversStorage->GetObservers()[this].push_back(o);
 		auto& sc = Observer::mSubscriptions[o];
-		assert(std::find(sc.begin(), sc.end(), this) == sc.end());
-		sc.push_back(this);
+		assert(sc.find(this) == sc.end());
+		sc[this] = {this, title};
 		return true;
 	}
 
@@ -81,15 +81,20 @@ namespace vl
 		if (it == observers.end())
 			return;
 		for (auto o : it->second)
-			o->Update(info);
+			o->Update(this, info);
+	}
+
+	const std::vector<Observer*>* Observable::GetObservers() const
+	{
+		auto& observers = mObserversStorage->GetObservers();
+		auto it = observers.find((Observable*)(this));
+		if (it != observers.end())
+			return &it->second;
+		return nullptr;
 	}
 
 	std::vector<Observer*>* Observable::GetObservers()
 	{
-		auto& observers = mObserversStorage->GetObservers();
-		auto it = observers.find(this);
-		if (it != observers.end())
-			return &it->second;
-		return nullptr;
+		return const_cast<std::vector<Observer*>*>(const_cast<const Observable*>(this)->GetObservers());
 	}
 }
