@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <sstream>
+#include <unordered_set>
 #include "vl.h"
 #include "visitor.h"
 #include "VLNotifications.h"
@@ -490,14 +491,35 @@ namespace vl
 			return false;
 		if (!mData)
 			return false;
-		for (auto& [propName, value] : mData->data)
+		if (!recursive)
 		{
-			if (recursive)
+			for (auto& [propName, value] : mData->data)
+				if (!pred(propName, *value))
+					return false;
+		}
+		else
+		{
+			std::unordered_set<std::string> keys;
+			const vl::Var* proto = nullptr;
+			for (auto& [propName, value] : mData->data)
+			{
+				if (!pred(propName, *value))
+					return false;
+				keys.emplace(propName);
 				if (propName == "proto")
-					if (value->IsObject())
-						const_cast<const vl::ObjectVar&>(value->AsObject()).ForeachProp(pred, recursive);
-			if (!pred(propName, *value))
-				return false;
+					proto = value.get();
+			}
+			if (proto != nullptr)
+				if (proto->IsObject())
+					if (!const_cast<const vl::ObjectVar&>(proto->AsObject()).ForeachProp([&](auto& k, auto& v) {
+						if (keys.find(k) != keys.end())
+							return true;
+						keys.emplace(k);
+						if (!pred(k, v))
+							return false;
+						return true;
+					}, recursive))
+						return false;
 		}
 		return true;
 	}
