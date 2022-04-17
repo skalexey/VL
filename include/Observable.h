@@ -12,8 +12,10 @@ namespace vl
 	{
 		friend class Observer;
 
-	public:
+	protected:
 		Observable();
+
+	public:
 		bool Attach(Observer* o, const std::string& title = "");
 		bool Detach(Observer* o);
 		virtual ~Observable();

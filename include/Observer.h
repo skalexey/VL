@@ -16,6 +16,9 @@ namespace vl
 	class Observer
 	{
 		friend class Observable;
+	protected:
+		Observer() = default;
+
 	public:
 		virtual ~Observer();
 		virtual void Update(Observable* sender, vl::VarPtr info = nullptr) = 0;
