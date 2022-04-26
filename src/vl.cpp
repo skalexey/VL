@@ -106,8 +106,7 @@ namespace vl
 	const ObjectVar& AbstractVar::AsObject() const
 	{
 		// Default implementation
-		static ObjectVar emptyVar;
-		return emptyVar;
+		return nullObject;
 	}
 
 	const ListVar& AbstractVar::AsList() const
