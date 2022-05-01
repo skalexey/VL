@@ -181,7 +181,7 @@ namespace vl
 		const ObjectVar& AsObject() const override;
 		ObjectVar& AsObject() override;
 		Type GetType() const override;
-		int Size() const;
+		std::size_t Size() const;
 		Var& Set(const std::string& propName);
 		Var& Set(const std::string& propName, const Var& value);
 		Var& Set(const std::string& propName, const VarPtr& varPtr);
@@ -196,7 +196,7 @@ namespace vl
 		bool HasOwn(const std::string& propName) const;
 		std::shared_ptr<std::string> GetRelativePath(const std::string& propName) const;
 		bool Overridden(const std::string& propName) const;
-		int PropCount() const;
+		std::size_t PropCount() const;
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
@@ -271,7 +271,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		inline int Size() const {
+		inline std::size_t Size() const {
 			return mData ? mData->data.size() : 0;
 		}
 		void Clear(bool recursive = false);
