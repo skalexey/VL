@@ -66,7 +66,7 @@ bool vl::JSONWriter::AddProto(const ObjectVar& value)
 	}
 	else
 	{
-		// Put everything from 'proto' in the current container
+		// Put everything from 'proto' into the current container
 		PushCurrentContainer(GetCurrentContainer());
 		if (mCnvParams.storeTypeId)
 		{
