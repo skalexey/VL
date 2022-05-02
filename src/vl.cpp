@@ -2,7 +2,7 @@
 #include <sstream>
 #include <unordered_set>
 #include "vl.h"
-#include "visitor.h"
+#include "vl_visitor.h"
 #include "VLNotifications.h"
 
 #include "Log.h"

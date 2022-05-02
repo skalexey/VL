@@ -1,12 +1,7 @@
+#include "vl_fwd.h"
+
 namespace vl
 {
-	class NullVar;
-	class BoolVar;
-	class NumberVar;
-	class StringVar;
-	class ObjectVar;
-	class ListVar;
-
 	class Visitor
 	{
 	public:
