@@ -35,3 +35,12 @@ const vl::Object& TypeResolver::GetProto(const std::string& protoId) const
 		LOG_ERROR(Utils::FormatStr("Trying to resolve prototype '%s' using uninitialized TypeResolver", protoId.c_str()));
 	return vl::nullObject;
 }
+
+bool TypeResolver::IsType(const vl::Object& object) const
+{
+	if (mIsType)
+		return mIsType(object);
+	else
+		LOG_ERROR(Utils::FormatStr("Trying to know wheter an object %p is a type using uninitialized TypeResolver", &object));
+	return false;
+}

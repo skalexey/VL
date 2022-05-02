@@ -21,6 +21,7 @@ public:
 
 	std::string GetTypeId(const vl::Object& object) const;
 	const vl::Object& GetProto(const std::string& protoId) const;
+	bool IsType(const vl::Object& object) const;
 
 protected:
 	FGetTypeId mGetTypeId = nullptr;
