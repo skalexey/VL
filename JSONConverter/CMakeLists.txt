@@ -1,7 +1,4 @@
 cmake_minimum_required(VERSION 3.21)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
 # Uncomment the next line if want to experiment with g++ compliation
 #set(CMAKE_CXX_COMPILER "g++")
 
