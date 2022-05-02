@@ -3,9 +3,14 @@
 #include "Log.h"
 #include "Utils.h"
 
-TypeResolver::TypeResolver(const FGetTypeId& fGetTypeId, const FGetProto& fGetProto)
+TypeResolver::TypeResolver(
+	const FGetTypeId& fGetTypeId
+	, const FGetProto& fGetProto
+	, const FIsType& fIsType
+)
 	: mGetTypeId(fGetTypeId)
 	, mGetProto(fGetProto)
+	, mIsType(fIsType)
 {}
 
 TypeResolver::operator bool() const

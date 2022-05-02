@@ -8,9 +8,14 @@ class TypeResolver
 public:
 	typedef std::function<std::string(const vl::Object& object)> FGetTypeId;
 	typedef std::function<vl::Object& (const std::string& protoId)> FGetProto;
+	typedef std::function<bool(const vl::Object& object)> FIsType;
 	
 	TypeResolver() = default;
-	TypeResolver(const FGetTypeId& fGetTypeId, const FGetProto& fGetProto);
+	TypeResolver(
+		const FGetTypeId& fGetTypeId
+		, const FGetProto& fGetProto
+		, const FIsType& fIsType
+	);
 	
 	operator bool() const;
 
@@ -20,5 +25,6 @@ public:
 protected:
 	FGetTypeId mGetTypeId = nullptr;
 	FGetProto mGetProto = nullptr;
+	FIsType mIsType = nullptr;
 };
 
