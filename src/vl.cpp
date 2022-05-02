@@ -791,7 +791,7 @@ namespace vl
 		assert(mData);
 		if (!mData)
 			return ListInsertRet::Null();
-		int sz = mData->data.size();
+		auto sz = mData->data.size();
 		
 		INIT_NOTIFY_BEFORE
 		if (indexBefore >= 0 && indexBefore < sz)
@@ -804,10 +804,10 @@ namespace vl
 		}
 		else
 		{
-			SEND_NOTIFY_BEFORE("add", sz, mData)
+			SEND_NOTIFY_BEFORE("add", int(sz), mData)
 			mData->data.push_back(varPtr);
 			NOTIFY_AFTER(mData)
-			return { sz, *mData->data.back() };
+			return { int(sz), *mData->data.back() };
 		}
 	}
 

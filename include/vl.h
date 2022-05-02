@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <assert.h>
 #include <string>
 #include <vector>
