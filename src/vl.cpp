@@ -227,7 +227,7 @@ namespace vl
 		return Type::Object;
 	}
 
-	int ObjectVar::Size() const
+	std::size_t ObjectVar::Size() const
 	{
 		return mData ? mData->data.size() : 0;
 	}
@@ -376,7 +376,7 @@ namespace vl
 			return true;
 	}
 
-	int ObjectVar::PropCount() const
+	std::size_t ObjectVar::PropCount() const
 	{
 		if (!mData)
 			return 0;
