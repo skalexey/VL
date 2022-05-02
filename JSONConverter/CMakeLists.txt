@@ -8,15 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(JSONConverter)
 option(JSON_TESTS "Add JSONTest target" OFF)
 
-set(DEPS "dependencies")
+set(DEPS "${PROJECT_SOURCE_DIR}/dependencies")
 set(VL_DIR "${PROJECT_SOURCE_DIR}/../")
 
 #message("JSONConverter CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-
-include_directories(${PROJECT_BINARY_DIR})
-include_directories("${VL_DIR}/include")
-include_directories("${DEPS}/rapidjson/include")
-include_directories("${PROJECT_SOURCE_DIR}/include")
 
 if (CMAKE_CXX_COMPILER EQUAL "g++")
 	set(VL_BUILD_DIR_NAME "Build-g++")
@@ -25,6 +20,17 @@ else ()
 endif ()
 
 add_subdirectory("${VL_DIR}" "${VL_DIR}/${VL_BUILD_DIR_NAME}")
+
+set(JSONCONVERTER_INCLUDES
+	"${VL_INCLUDES}"
+	"${DEPS}/rapidjson/include"
+	"${PROJECT_SOURCE_DIR}/include"
+)
+set(JSONCONVERTER_INCLUDES ${JSONCONVERTER_INCLUDES} PARENT_SCOPE)
+
+message("JSONCONVERTER_INCLUDES: ${JSONCONVERTER_INCLUDES}")
+include_directories(${PROJECT_BINARY_DIR})
+include_directories("${JSONCONVERTER_INCLUDES}")
 
 file(GLOB SRC "src/*")
 file(GLOB HEADERS "include/*")

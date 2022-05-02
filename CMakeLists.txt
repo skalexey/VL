@@ -14,7 +14,15 @@ option(VL_TESTS "Include Test target" OFF)
 
 #message("VL CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-include_directories("include")
+set(VL_INCLUDES
+	"${PROJECT_SOURCE_DIR}/include"
+)
+
+set(VL_INCLUDES ${VL_INCLUDES} PARENT_SCOPE)
+
+message("VL_INCLUDES: ${VL_INCLUDES}")
+
+include_directories("${VL_INCLUDES}")
 include_directories(${PROJECT_BINARY_DIR})
 
 file(GLOB SRC "src/*")
