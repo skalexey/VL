@@ -203,7 +203,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		vl::VarPtr Copy() const;
+		vl::VarPtr Copy() const override;
 		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
 		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive = false);
 		void SetPrototype(const vl::Object& proto);
@@ -240,7 +240,7 @@ namespace vl
 	// Sharable
 	struct ListDataType : public Observable, public Observer
 	{
-		void Notify(vl::VarPtr info);
+		void Notify(vl::VarPtr info) override;
 		void Update(Observable* sender, vl::VarPtr info = nullptr) override;
 		std::vector<VarPtr> data;
 	};

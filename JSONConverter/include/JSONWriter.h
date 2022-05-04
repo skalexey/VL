@@ -1,6 +1,6 @@
 #include "vl_visitor.h"
 #include "JSONDefs.h"
-#include "rapidjson/fwd.h"
+#include <rapidjson/fwd.h>
 #include "rapidjson/document.h"
 #include "TypeResolver.h"
 

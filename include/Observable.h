@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <unordered_map>
 #include "Observer.h"
 #include "vl_fwd.h"
