@@ -8,22 +8,41 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(JSONConverter)
 option(JSON_TESTS "Add JSONTest target" OFF)
 
-set(DEPS "${PROJECT_SOURCE_DIR}/dependencies")
-set(VL_DIR "${PROJECT_SOURCE_DIR}/../")
+file(STRINGS build_config.sh build_config REGEX ".*extraArg=\"(.*)\"")
+message("buid_config: ${build_config}")
+
+if ("${DEPS}" STREQUAL "")
+	message("WARNING: DEPS is not specified. Take the default value")
+	set(DEPS "${PROJECT_SOURCE_DIR}/dependencies")
+else()
+	message("DEPS: ${DEPS}")
+endif()
+
+if ("${VL_DIR}" STREQUAL "")
+	set(VL_DIR "${PROJECT_SOURCE_DIR}/../")
+else()
+	message("VL_DIR: ${VL_DIR}")
+endif()
+
+if ("${RAPIDJSON_DIR}" STREQUAL "")
+	set(RAPIDJSON_DIR "${DEPS}/rapidjson")
+else()
+	message("RAPIDJSON_DIR: ${RAPIDJSON_DIR}")
+endif()
 
 #message("JSONConverter CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 if (CMAKE_CXX_COMPILER EQUAL "g++")
-	set(VL_BUILD_DIR_NAME "Build-g++")
+	set(BUILD_DIR_NAME "Build-g++")
 else ()
-	set(VL_BUILD_DIR_NAME "Build-cmake")
+	set(BUILD_DIR_NAME "Build-cmake")
 endif ()
 
-add_subdirectory("${VL_DIR}" "${VL_DIR}/${VL_BUILD_DIR_NAME}")
+add_subdirectory("${VL_DIR}" "${VL_DIR}/${BUILD_DIR_NAME}")
 
 set(JSONCONVERTER_INCLUDES
 	"${VL_INCLUDES}"
-	"${DEPS}/rapidjson/include"
+	"${RAPIDJSON_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/include"
 )
 set(JSONCONVERTER_INCLUDES ${JSONCONVERTER_INCLUDES} PARENT_SCOPE)
