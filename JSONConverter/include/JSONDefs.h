@@ -19,5 +19,15 @@ namespace vl
 		bool pretty = false;
 		bool useProtoRefs = true;
 		bool storeTypeId = true;
+		
+		inline bool operator != (const CnvParams& left) const {
+			return !operator==(left);
+		}
+
+		inline bool operator == (const CnvParams& left) const {
+			return 	pretty == left.pretty &&
+					useProtoRefs == left.useProtoRefs &&
+					storeTypeId == left.storeTypeId;
+		}
 	};
 }
