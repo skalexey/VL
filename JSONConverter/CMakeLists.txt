@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(JSONConverter)
+
+message("=== JSONConverter project CMake build configuration process started ===")
+
 option(JSON_TESTS "Add JSONTest target" OFF)
 
 file(STRINGS build_config.sh build_config REGEX ".*extraArg=\"(.*)\"")
