@@ -4,10 +4,9 @@
 #include "vl.h"
 #include "vl_visitor.h"
 #include "VLNotifications.h"
-
-#include "Log.h"
+#include <utils/Log.h>
 #ifdef LOG_ON
-	#include "Utils.h"
+	#include <utils/Utils.h>
 #endif
 
 namespace vl

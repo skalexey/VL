@@ -2,9 +2,9 @@
 #include <assert.h>
 #include "Observable.h"
 #include "Observer.h"
-#include "Log.h"
+#include <utils/Log.h>
 #ifdef LOG_ON
-	#include "Utils.h"
+	#include <utils/Utils.h>
 #endif
 
 namespace vl

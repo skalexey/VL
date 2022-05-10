@@ -1,7 +1,7 @@
 #include "TypeResolver.h"
 #include "vl.h"
-#include "Log.h"
-#include "Utils.h"
+#include <utils/Log.h>
+#include <utils/Utils.h>
 
 TypeResolver::TypeResolver(
 	const FGetTypeId& fGetTypeId

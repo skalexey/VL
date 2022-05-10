@@ -1,9 +1,9 @@
 #include <cstring>
 #include "JSONLoader.h"
 #include "vl.h"
-#include "Log.h"
+#include "utils/Log.h"
 #ifdef LOG_ON
-	#include "Utils.h"
+	#include "utils/Utils.h"
 #endif
 #include "JSONDefs.h"
 

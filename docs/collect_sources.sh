@@ -22,9 +22,6 @@ cd Src
 	cd ..
 	
 	mkdir Utility
-	mv VL/Utils.h Utility
-	mv VL/Log.h Utility
-	
-	mkdir Utility/src
-	mv VL/src/Utils.cpp Utility/src
+	mv Utils/include/utils/Utils.h Utility
+	mv Utils/include/utils/Log.h Utility
 cd ..
