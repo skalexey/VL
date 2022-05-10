@@ -271,8 +271,7 @@ namespace vl
 		}
 		else
 		{
-			auto result = mData->data.emplace(propName, varPtr);
-			ret = &*(result.first->second);
+			ret = &*(mData->data[propName] = varPtr);
 		}
 
 		if (ret->IsObject())
