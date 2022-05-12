@@ -71,3 +71,9 @@ if (VL_TESTS)
 	target_link_libraries(VLTest VL)
 	target_link_libraries(VLTest ${EXTRA_LIBS})
 endif ()
+
+# add_custom_command(
+#     TARGET VL PRE_BUILD
+#     COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/get_dependencies.sh ${CMAKE_BUILD_TYPE} "${CMAKE_CURRENT_SOURCE_DIR}"
+#     VERBATIM
+# )

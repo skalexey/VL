@@ -69,3 +69,9 @@ if (JSON_TESTS)
 	add_executable(JSONTest test.cpp)
 	target_link_libraries(JSONTest JSONConverter)
 endif ()
+
+add_custom_command(
+    TARGET JSONConverter PRE_BUILD
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/get_dependencies.sh ${CMAKE_BUILD_TYPE} "${CMAKE_CURRENT_SOURCE_DIR}"
+    VERBATIM
+)
