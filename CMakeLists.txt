@@ -17,32 +17,45 @@ option(VL_TESTS "Include Test target" OFF)
 
 #message("VL CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
+if ("${DEPS}" STREQUAL "")
+	message("VL: WARNING: DEPS is not specified. Take the default value")
+	set(DEPS "${PROJECT_SOURCE_DIR}/dependencies")
+else()
+	message("VL: DEPS: ${DEPS}")
+endif()
+
+set(UTILS_DIR "${DEPS}/Utils/include")
+foreach(items ${UTILS_DIR})
+	file(GLOB_RECURSE UTILS_SRC "${items}/*.cpp")
+endforeach()
+
 set(VL_INCLUDES
 	"${PROJECT_SOURCE_DIR}/include"
+	"${UTILS_DIR}"
 )
 
 if (NOT "${INCLUDES}" STREQUAL "")
-	message("External INCLUDES variable: ${INCLUDES}")
+	message("VL: External INCLUDES variable: ${INCLUDES}")
 	set(VL_INCLUDES ${VL_INCLUDES} ${INCLUDES})
 	foreach(items ${INCLUDES})
 		file(GLOB_RECURSE INCLUDES_SRC "${items}/*.cpp")
 	endforeach()
-	message("External INCLUDES sources: ${INCLUDES_SRC}")
+	message("VL: External INCLUDES sources: ${INCLUDES_SRC}")
 endif()
 
 set(VL_INCLUDES ${VL_INCLUDES} PARENT_SCOPE)
-message("VL_INCLUDES: ${VL_INCLUDES}")
+message("VL: VL_INCLUDES: ${VL_INCLUDES}")
 
 include_directories("${VL_INCLUDES}")
 include_directories(${PROJECT_BINARY_DIR})
 
 file(GLOB SRC "src/*")
-set(SRC ${SRC} ${INCLUDES_SRC})
+set(SRC ${SRC} ${INCLUDES_SRC} ${UTILS_SRC})
 
 file(GLOB HEADERS "include/*")
 
-message("VL HEADERS: ${HEADERS}")
-message("VL SRC: ${SRC}")
+message("VL: HEADERS: ${HEADERS}")
+message("VL: SRC: ${SRC}")
 
 add_library(VL ${SRC} ${HEADERS})
 message("=== VL library added ===")
