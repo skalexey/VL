@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 source dependencies.sh
 source deps_config.sh
