@@ -1,7 +1,9 @@
 #!/bin/bash
 
 source log.sh
+lastFolderName=$folderName
 folderName=${PWD##*/}
+last_log_prefix=$log_prefix
 log_prefix="-- [${folderName} build script]: "
 
 log "Build for OS: $OSTYPE" " -" " ---"
@@ -98,4 +100,5 @@ fi
 
 cd "$enterDirectory"
 
-log "Finished build" " -" " ---"
+log "Finished build" " -" " ---"folderName=$lastFolderName
+log_prefix=$last_log_prefix
