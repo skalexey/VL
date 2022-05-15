@@ -1,6 +1,11 @@
 #!/bin/bash
 
-source dependencies.sh
-source deps_config.sh
+deps_scenario()
+{
+	source dependencies.sh
+	source deps_config.sh
 
-download_dependency "Utils" "$depsLocation" "git@github.com:skalexey/Utils.git"
+	download_dependency "Utils" "$depsLocation" "git@github.com:skalexey/Utils.git"
+}
+
+deps_scenario $@
