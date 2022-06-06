@@ -1,7 +1,7 @@
 #!/bin/bash
 
 buildFolderPrefix="Build"
-extraArg=" -DINCLUDES=${HOME}/Projects/Utils/include"
+extraArg=" -DDEPS=${HOME}/Projects"
 extraArgWin=$extraArg
 extraArgMac=$extraArg
 buildConfig="Debug"
