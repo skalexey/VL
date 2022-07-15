@@ -656,7 +656,7 @@ namespace vl
 
 	NumberVar& NumberVar::operator=(int val)
 	{
-		mData = val;
+		mData = int(val);
 		return *this;
 	}
 
