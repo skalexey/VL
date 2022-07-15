@@ -4,7 +4,7 @@
 #include "Observer.h"
 #include <utils/Log.h>
 #ifdef LOG_ON
-	#include <utils/Utils.h>
+	#include <utils/string_utils.h>
 #endif
 
 namespace vl
@@ -13,7 +13,7 @@ namespace vl
 
 	void Observable::Unsubscribe(Observer* o)
 	{
-		LOG_VERBOSE(Utils::FormatStr("	%p->Unsubscribe(%p)", this, o));
+		LOG_VERBOSE(utils::format_str("	%p->Unsubscribe(%p)", this, o));
 		auto sc = o->GetSubscriptions();
 		assert(sc != nullptr);
 		auto scIt = sc->find(this);
@@ -23,12 +23,12 @@ namespace vl
 
 	Observable::Observable()
 	{
-		LOG_VERBOSE(Utils::FormatStr("Observable() %p", this));
+		LOG_VERBOSE(utils::format_str("Observable() %p", this));
 	}
 
 	bool Observable::Attach(Observer* o, const std::string& title)
 	{
-		LOG_VERBOSE(Utils::FormatStr("%p->Attach(%p)", this, o));
+		LOG_VERBOSE(utils::format_str("%p->Attach(%p)", this, o));
 		if (auto observers = GetObservers())
 		{
 			auto it = std::find(observers->begin(), observers->end(), o);
@@ -47,7 +47,7 @@ namespace vl
 
 	bool Observable::Detach(Observer* o)
 	{
-		LOG_VERBOSE(Utils::FormatStr("%p->Detach(%p)", this, o));
+		LOG_VERBOSE(utils::format_str("%p->Detach(%p)", this, o));
 		if (auto observers = GetObservers())
 		{
 			auto it = std::find(observers->begin(), observers->end(), o);
@@ -58,16 +58,16 @@ namespace vl
 				return true;
 			}
 		}
-		LOG_WARNING(Utils::FormatStr("An Attempt to detach not registered observer %p from subject %p", o, this));
+		LOG_WARNING(utils::format_str("An Attempt to detach not registered observer %p from subject %p", o, this));
 		return false;
 	}
 
 	Observable::~Observable()
 	{
-		LOG_VERBOSE(Utils::FormatStr("~Observable() %p", this));
+		LOG_VERBOSE(utils::format_str("~Observable() %p", this));
 		if (auto observers = GetObservers())
 		{
-			LOG_VERBOSE(Utils::FormatStr("	Found %d observers", observers->size()));
+			LOG_VERBOSE(utils::format_str("	Found %d observers", observers->size()));
 			for (auto o : *observers)
 				Unsubscribe(o);
 			mObserversStorage->GetObservers().erase(this);

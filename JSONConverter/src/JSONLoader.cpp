@@ -3,7 +3,7 @@
 #include "vl.h"
 #include "utils/Log.h"
 #ifdef LOG_ON
-	#include "utils/Utils.h"
+	#include <utils/string_utils.h>
 #endif
 #include "JSONDefs.h"
 
@@ -131,7 +131,7 @@ void vl::JSONLoader::ResolveRefs()
 	{
 		auto ref = *it;
 		auto& typeId = ref->Get("typeid").AsString().Val();
-		JSON_LOG_VERBOSE(Utils::FormatStr("	typeId: %s", typeId.c_str()));
+		JSON_LOG_VERBOSE(utils::format_str("	typeId: %s", typeId.c_str()));
 		auto tIt = mTypeRefs.find(typeId);
 		auto moveSubscribers = [&](vl::Object& from, vl::Object& to) {
 			const auto* observable = from.Observable();
@@ -164,7 +164,7 @@ void vl::JSONLoader::ResolveRefs()
 			}
 			else
 			{
-				LOG_WARNING(Utils::FormatStr("No type resolver passed to JSONLoader. Unresolved type reference remaining: '%s'", typeId.c_str()));
+				LOG_WARNING(utils::format_str("No type resolver passed to JSONLoader. Unresolved type reference remaining: '%s'", typeId.c_str()));
 				++it;
 			}
 		}

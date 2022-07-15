@@ -6,7 +6,7 @@
 #include "VLNotifications.h"
 #include <utils/Log.h>
 #ifdef LOG_ON
-	#include <utils/Utils.h>
+	#include <utils/string_utils.h>
 #endif
 
 namespace vl
@@ -279,7 +279,7 @@ namespace vl
 		//else if (ret->IsList())
 		//	ret->AsList().Attach(mData.get(), propName);
 		
-		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p with name '%s'", &result, this, propName.c_str()));
+		LOG_VERBOSE(utils::format_str("Create new variable %p in %p with name '%s'", ret, this, propName.c_str()));
 
 		return *ret;
 	}
@@ -829,7 +829,7 @@ namespace vl
 		NOTIFY_BEFORE("set", index, mData)
 		auto& result = *(mData->data[index] = varPtr);
 		
-		LOG_VERBOSE(Utils::FormatStr("Create new variable %p in %p at index '%d'", &result, this, index));
+		LOG_VERBOSE(utils::format_str("Create new variable %p in %p at index '%d'", &result, this, index));
 		
 		NOTIFY_AFTER(mData)
 		return { index, result };
