@@ -154,6 +154,16 @@ namespace vl
 		// Default implementation
 		return Ptr();
 	}
+
+	const Var& AbstractVar::operator[](const char* s) const
+	{
+		return emptyVar;
+	}
+
+	Var& AbstractVar::operator[](const char* s)
+	{
+		return emptyVar;
+	}
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
@@ -302,6 +312,18 @@ namespace vl
 	Var& ObjectVar::Get(const std::string& propName)
 	{
 		return const_cast<Var&>(const_cast<const ObjectVar*>(this)->Get(propName));
+	}
+
+	const Var& ObjectVar::operator[](const char* s) const
+	{
+		return Get(s);
+	}
+
+	Var& ObjectVar::operator[](const char* s)
+	{
+		if (!Has(s))
+			return Set(s, vl::Object());
+		return Get(s);
 	}
 	
 	bool ObjectVar::Has(const std::string& propName) const

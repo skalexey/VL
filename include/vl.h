@@ -54,6 +54,8 @@ namespace vl
 		virtual std::string ToStr() const { return ""; }
 		virtual const void* Data() const;
 		virtual vl::VarPtr Copy() const;
+		virtual const Var& operator[](const char* s) const;
+		virtual Var& operator[](const char* s);
 
 	protected:
 		template <typename T>
@@ -191,6 +193,8 @@ namespace vl
 		{
 			return Set(propName, MakePtr(value));
 		}
+		const Var& operator[](const char* s) const override;
+		Var& operator[](const char* s) override;
 		const Var& Get(const std::string& propName) const;
 		Var& Get(const std::string& propName);
 		bool Has(const std::string& propName) const;
