@@ -8,7 +8,10 @@
 
 namespace vl
 {
-	std::unordered_map<Observer*, std::unordered_map<Observable*, SubscriptionInfo>> Observer::mSubscriptions;
+	// The maximum lifetime provided
+	std::unordered_map<Observer*, std::unordered_map<Observable*, SubscriptionInfo>>&
+		Observer::mSubscriptions
+			= *(new std::unordered_map<Observer*, std::unordered_map<Observable*, SubscriptionInfo>>());
 
 	Observer::~Observer()
 	{
