@@ -656,19 +656,19 @@ namespace vl
 
 	NumberVar& NumberVar::operator=(int val)
 	{
-		mData = int(val);
+		mData = float(val);
 		return *this;
 	}
 
 	NumberVar& NumberVar::operator=(double val)
 	{
-		mData = int(val);
+		mData = float(val);
 		return *this;
 	}
 
 	NumberVar& NumberVar::operator=(float val)
 	{
-		mData = int(val);
+		mData = val;
 		return *this;
 	}
 
