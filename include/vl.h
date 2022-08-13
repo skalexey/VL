@@ -151,7 +151,7 @@ namespace vl
 	//		, mData(&data)
 	//	{}
 	//	vl::Var& data();
-	//	inline operator bool() { return mData != nullptr; }
+	//	operator bool() { return mData != nullptr; }
 	//	static ObjectSetRet Null();
 
 	//private:
@@ -213,17 +213,17 @@ namespace vl
 		void SetPrototype(const vl::Object& proto);
 		Object& GetPrototype() const;
 		std::string ToStr() const override;
-		inline void Attach(Observer* o, const std::string& title = "") {
+		void Attach(Observer* o, const std::string& title = "") {
 			mData->Attach(o, title);
 		}
-		inline void Detach(Observer* o) {
+		void Detach(Observer* o) {
 			mData->Detach(o);
 		}
-		inline const void* Data() const override {
+		const void* Data() const override {
 			return mData.get();
 		}
 
-		inline Observable* Observable() {
+		Observable* Observable() {
 			return mData.get();
 		}
 		void Clear(bool recursive = false);
@@ -260,7 +260,7 @@ namespace vl
 			, mData(&data)
 		{}
 		vl::Var& data();
-		inline operator bool() { return index >= 0; }
+		operator bool() { return index >= 0; }
 		static ListInsertRet Null();
 	private:
 		vl::Var* mData = nullptr;
@@ -276,7 +276,7 @@ namespace vl
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		inline std::size_t Size() const {
+		std::size_t Size() const {
 			return mData ? mData->data.size() : 0;
 		}
 		void Clear(bool recursive = false);
@@ -300,13 +300,13 @@ namespace vl
 		Var& Back();
 		bool IsEmpty() const;
 		std::string ToStr() const override;
-		inline void Attach(Observer* o, const std::string& title = "") {
+		void Attach(Observer* o, const std::string& title = "") {
 			mData->Attach(o);
 		}
-		inline void Detach(Observer* o) {
+		void Detach(Observer* o) {
 			mData->Detach(o);
 		}
-		inline const void* Data() const override {
+		const void* Data() const override {
 			return mData.get();
 		}
 		vl::VarPtr Copy() const override;
@@ -326,7 +326,7 @@ namespace vl
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		inline const void* Data() const override {
+		const void* Data() const override {
 			return nullptr;
 		}
 	};
