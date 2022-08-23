@@ -375,14 +375,14 @@ namespace vl
 	bool ObjectVar::overriddenRecursive(const std::string& propName, int count) const
 	{
 		if (!mData)
-			return nullptr;
+			return false;
 		auto it = mData->data.find(propName);
 		if (it == mData->data.end())
 		{
 			// Not found. Go through the proto chain and search there
 			if (auto& proto = GetPrototype())
 				return proto.overriddenRecursive(propName, count);
-			return nullptr;
+			return false;
 		}
 		// Found one
 		if (count == 0)
