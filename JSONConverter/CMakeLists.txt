@@ -2,10 +2,18 @@ cmake_minimum_required(VERSION 3.21)
 # Uncomment the next line if want to experiment with g++ compliation
 #set(CMAKE_CXX_COMPILER "g++")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(JSONConverter C CXX)
 
-project(JSONConverter)
+if(MSVC)
+	# fix __cplusplus macro for MSVC
+	add_compile_options(
+		"/Zc:__cplusplus"
+		"/std:c++latest"
+	)
+else()
+	set(CMAKE_CXX_STANDARD 20)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message("=== JSONConverter project CMake build configuration process started ===")
 

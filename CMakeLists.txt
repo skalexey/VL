@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 3.21)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Uncomment the next line if want to experiment with g++ compliation
 #set(CMAKE_CXX_COMPILER "g++")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(VL C CXX)
 
-project(VL)
+if(MSVC)
+	# fix __cplusplus macro for MSVC
+	add_compile_options(
+		"/Zc:__cplusplus"
+		"/std:c++latest"
+	)
+else()
+	set(CMAKE_CXX_STANDARD 20)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message("=== VL project CMake build configuration process started ===")
 
@@ -24,14 +30,20 @@ else()
 	message("VL: DEPS: ${DEPS}")
 endif()
 
-set(UTILS_DIR "${DEPS}/Utils/include")
-foreach(items ${UTILS_DIR})
-	file(GLOB_RECURSE UTILS_SRC "${items}/*.cpp")
-endforeach()
+# Build directory name
+if (CMAKE_CXX_COMPILER EQUAL "g++")
+	set(BUILD_DIR_NAME "Build-g++")
+else ()
+	set(BUILD_DIR_NAME "Build-cmake")
+endif ()
+
+set(UTILS_DIR "${DEPS}/Utils")
+add_subdirectory ("${UTILS_DIR}" "${UTILS_DIR}/${BUILD_DIR_NAME}")
+set(CUSTOM_INCLUDES ${CUSTOM_INCLUDES} ${utils_INCLUDES})
 
 set(VL_INCLUDES
 	"${PROJECT_SOURCE_DIR}/include"
-	"${UTILS_DIR}"
+	"${CUSTOM_INCLUDES}"
 )
 
 if (NOT "${INCLUDES}" STREQUAL "")
@@ -58,6 +70,8 @@ message("VL: HEADERS: ${HEADERS}")
 message("VL: SRC: ${SRC}")
 
 add_library(VL ${SRC} ${HEADERS})
+target_link_libraries(VL utils)
+
 message("=== VL library added ===")
 
 if (VL_JSON)
