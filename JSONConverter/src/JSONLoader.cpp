@@ -134,7 +134,7 @@ void vl::JSONLoader::ResolveRefs()
 		JSON_LOG_VERBOSE(utils::format_str("	typeId: %s", typeId.c_str()));
 		auto tIt = mTypeRefs.find(typeId);
 		auto moveSubscribers = [&](vl::Object& from, vl::Object& to) {
-			const auto* observable = from.Observable();
+			const auto* observable = from.GetObservable();
 			if (auto observers = observable->GetObservers())
 				for (auto o : *observers)
 					if (auto info = o->GetSubscriptionInfo(observable))

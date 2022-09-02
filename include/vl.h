@@ -223,7 +223,7 @@ namespace vl
 			return mData.get();
 		}
 
-		Observable* Observable() {
+		Observable* GetObservable() {
 			return mData.get();
 		}
 		void Clear(bool recursive = false);
