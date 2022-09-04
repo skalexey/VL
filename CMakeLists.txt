@@ -23,12 +23,22 @@ option(VL_TESTS "Include Test target" OFF)
 
 #message("VL CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
+# set deps variables
+set(vl_DEPS "$ENV{vl_deps}")
+set(vl_DEPS "${vl_DEPS}" PARENT_SCOPE)
+if ("${vl_DEPS}" STREQUAL "")
+	set(DEPS "$ENV{build_deps}")
+endif()
 if ("${DEPS}" STREQUAL "")
-	message("VL: WARNING: DEPS is not specified. Take the default value")
-	set(DEPS "${PROJECT_SOURCE_DIR}/dependencies")
+	set(DEPS ${vl_DEPS})
+endif()
+if ("${DEPS}" STREQUAL "")
+	message(SEND_ERROR "vl: ERROR: DEPS is not specified. Take the default value")
+	set(DEPS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies)
 else()
 	message("VL: DEPS: ${DEPS}")
 endif()
+set(DEPS ${DEPS} PARENT_SCOPE)
 
 # Build directory name
 if (CMAKE_CXX_COMPILER EQUAL "g++")
@@ -37,10 +47,12 @@ else ()
 	set(BUILD_DIR_NAME "Build-cmake")
 endif ()
 
+# Utils dependency
 set(UTILS_DIR "${DEPS}/Utils")
 add_subdirectory ("${UTILS_DIR}" "${UTILS_DIR}/${BUILD_DIR_NAME}")
 set(CUSTOM_INCLUDES ${CUSTOM_INCLUDES} ${utils_INCLUDES})
 
+# includes
 set(VL_INCLUDES
 	"${PROJECT_SOURCE_DIR}/include"
 	"${CUSTOM_INCLUDES}"
