@@ -7,7 +7,7 @@ deps_scenario()
 	source $THIS_DIR/deps_config.sh
 
 	download_dependency "Utils" "$depsLocation" "git@github.com:skalexey/Utils.git"
-	source $THIS_DIR/"$depsLocation/VL/JSONConverter/deps_scenario.sh"
+	source "$depsLocation/VL/JSONConverter/deps_scenario.sh"
 }
 
 deps_scenario $@
