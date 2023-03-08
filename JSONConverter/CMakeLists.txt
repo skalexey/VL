@@ -8,11 +8,10 @@ if(MSVC)
 	# fix __cplusplus macro for MSVC
 	add_compile_options(
 		"/Zc:__cplusplus"
-		"/std:c++latest"
+		# "/std:c++latest"
 	)
-else()
-	set(CMAKE_CXX_STANDARD 20)
 endif()
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message("=== JSONConverter project CMake build configuration process started ===")

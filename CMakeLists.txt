@@ -9,11 +9,10 @@ if(MSVC)
 	# fix __cplusplus macro for MSVC
 	add_compile_options(
 		"/Zc:__cplusplus"
-		"/std:c++latest"
+		# "/std:c++latest"
 	)
-else()
-	set(CMAKE_CXX_STANDARD 20)
 endif()
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message("=== VL project CMake build configuration process started ===")
@@ -49,8 +48,9 @@ endif ()
 
 # Utils dependency
 set(UTILS_DIR "${DEPS}/Utils")
-add_subdirectory ("${UTILS_DIR}" "${UTILS_DIR}/${BUILD_DIR_NAME}")
-set(CUSTOM_INCLUDES ${CUSTOM_INCLUDES} ${utils_INCLUDES})
+set(CUSTOM_INCLUDES ${CUSTOM_INCLUDES} 
+	${UTILS_DIR}/include
+)
 
 # includes
 set(VL_INCLUDES
@@ -74,7 +74,13 @@ include_directories("${VL_INCLUDES}")
 include_directories(${PROJECT_BINARY_DIR})
 
 file(GLOB SRC "src/*")
-set(SRC ${SRC} ${INCLUDES_SRC} ${UTILS_SRC})
+set(UTILS_SRC 
+	${UTILS_DIR}/src/string_utils.cpp
+)
+set(SRC ${SRC}
+	${INCLUDES_SRC}
+	${UTILS_SRC}
+)
 
 file(GLOB HEADERS "include/*")
 
@@ -82,7 +88,6 @@ message("VL: HEADERS: ${HEADERS}")
 message("VL: SRC: ${SRC}")
 
 add_library(VL ${SRC} ${HEADERS})
-target_link_libraries(VL utils)
 
 message("=== VL library added ===")
 
