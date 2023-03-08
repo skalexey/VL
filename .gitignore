@@ -1,4 +1,5 @@
 Build-cmake/
+build/
 dependencies/
 tmp/
 *.pyc
