@@ -87,7 +87,7 @@ file(GLOB HEADERS "include/*")
 message("VL: HEADERS: ${HEADERS}")
 message("VL: SRC: ${SRC}")
 
-add_library(VL ${SRC} ${HEADERS})
+add_library(VL STATIC ${SRC} ${HEADERS})
 
 message("=== VL library added ===")
 

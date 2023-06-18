@@ -74,7 +74,7 @@ include_directories("${JSONCONVERTER_INCLUDES}")
 
 file(GLOB SRC "src/*")
 file(GLOB HEADERS "include/*")
-add_library(JSONConverter ${SRC} ${HEADERS})
+add_library(JSONConverter STATIC ${SRC} ${HEADERS})
 
 target_link_libraries (JSONConverter VL)
 
