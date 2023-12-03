@@ -8,8 +8,8 @@
 #include <memory>
 #include <functional>
 #include "vl_fwd.h"
-#include "Observable.h"
-#include "Observer.h"
+#include <utils/patterns/Observer.h>
+#include <utils/patterns/Observable.h>
 
 namespace vl
 {
@@ -235,10 +235,10 @@ namespace vl
 		ObjectDataType mData = std::make_shared<PropsDataType>();
 	};
 
-	extern vl::Object nullObject;
+	extern vl::Object& NullObject();
 	
 	// Empty var used to return it by reference to some functions
-	extern vl::NullVar emptyVar;
+	extern vl::NullVar& EmptyVar();
 
 	// ListVar declaration
 	// Sharable
@@ -315,7 +315,7 @@ namespace vl
 		ListVarDataType mData = std::make_shared<ListDataType>();
 	};
 
-	extern vl::ListVar emptyList;
+	extern vl::ListVar& EmptyList();
 
 	// NullVar declaration
 	// Non sharable

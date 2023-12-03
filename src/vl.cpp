@@ -11,9 +11,23 @@
 
 namespace vl
 {
-	vl::NullVar emptyVar;
-	vl::Object nullObject(nullptr);
-	vl::ListVar emptyList;
+	vl::Object& NullObject()
+	{
+		static vl::Object nullObject(nullptr);
+		return nullObject;
+	}
+
+	vl::NullVar& EmptyVar()
+	{
+		static vl::NullVar emptyVar;
+		return emptyVar;
+	}
+	vl::ListVar& EmptyList()
+	{
+		static vl::ListVar emptyList;
+		return emptyList;
+	}
+	
 
 	VarPtr MakePtr(bool value)
 	{
@@ -105,13 +119,13 @@ namespace vl
 	const ObjectVar& AbstractVar::AsObject() const
 	{
 		// Default implementation
-		return nullObject;
+		return NullObject();
 	}
 
 	const ListVar& AbstractVar::AsList() const
 	{
 		// Default implementation
-		return emptyList;
+		return EmptyList();
 	}
 
 	BoolVar& AbstractVar::AsBool()
@@ -157,12 +171,12 @@ namespace vl
 
 	const Var& AbstractVar::operator[](const char* s) const
 	{
-		return emptyVar;
+		return EmptyVar();
 	}
 
 	Var& AbstractVar::operator[](const char* s)
 	{
-		return emptyVar;
+		return EmptyVar();
 	}
 	// ======= End of AbstractVar definitions =======
 
@@ -170,12 +184,12 @@ namespace vl
 	// TODO: support
 	//ObjectInsertRet ObjectInsertRet::Null()
 	//{
-	//	return { "", emptyVar };
+	//	return { "", EmptyVar() };
 	//}
 
 	//vl::Var& ObjectInsertRet::data()
 	//{
-	//	return mData ? *mData : emptyVar;
+	//	return mData ? *mData : EmptyVar();
 	//}
 
 	void PropsDataType::Notify(vl::VarPtr info)
@@ -254,7 +268,7 @@ namespace vl
 	Var& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
 	{
 		if (!mData)
-			return emptyVar;
+			return EmptyVar();
 
 		Var* ret = nullptr;
 
@@ -297,7 +311,7 @@ namespace vl
 	const Var& ObjectVar::Get(const std::string& propName) const
 	{
 		if (!mData)
-			return emptyVar;
+			return EmptyVar();
 		auto it = mData->data.find(propName);
 		if (it != mData->data.end())
 			return *it->second;
@@ -306,7 +320,7 @@ namespace vl
 			if (auto& proto = GetPrototype())
 				return proto.Get(propName);
 		}
-		return emptyVar;
+		return EmptyVar();
 	}
 
 	Var& ObjectVar::Get(const std::string& propName)
@@ -568,7 +582,7 @@ namespace vl
 				if (it->second->IsObject())
 					return it->second->AsObject();
 		}
-		return nullObject;
+		return NullObject();
 	}
 
 	void ObjectVar::Clear(bool recursive) {
@@ -723,12 +737,12 @@ namespace vl
 
 	ListInsertRet ListInsertRet::Null()
 	{
-		return { -1, emptyVar };
+		return { -1, EmptyVar() };
 	}
 
 	vl::Var& ListInsertRet::data()
 	{
-		return mData ? *mData : emptyVar;
+		return mData ? *mData : EmptyVar();
 	}
 
 	bool ListVar::Accept(Visitor& v, const char* name) const
@@ -798,7 +812,7 @@ namespace vl
 		// Don't check the range. Should be checked on the level above
 		if (mData && index >= 0 && index < mData->data.size())
 			return *mData->data[index];
-		return vl::emptyVar;
+		return vl::EmptyVar();
 	}
 
 	Var& ListVar::At(int index)
@@ -859,7 +873,7 @@ namespace vl
 
 	Var& ListVar::Back()
 	{
-		return mData ? *mData->data.back() : emptyVar;
+		return mData ? *mData->data.back() : EmptyVar();
 	}
 
 	bool ListVar::IsEmpty() const

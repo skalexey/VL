@@ -33,7 +33,7 @@ const vl::Object& TypeResolver::GetProto(const std::string& protoId) const
 		return mGetProto(protoId);
 	else
 		LOG_ERROR(utils::format_str("Trying to resolve prototype '%s' using uninitialized TypeResolver", protoId.c_str()));
-	return vl::nullObject;
+	return vl::NullObject();
 }
 
 bool TypeResolver::IsType(const vl::Object& object) const

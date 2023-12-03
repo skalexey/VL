@@ -40,9 +40,9 @@ namespace vl
 	typedef NullVar Null;
 	typedef std::shared_ptr<Var> VarPtr;
 
-	extern vl::Object nullObject;
-	extern vl::ListVar emptyList;
-	extern vl::NullVar emptyVar;
+	extern vl::Object& NullObject();
+	extern vl::ListVar& EmptyList();
+	extern vl::NullVar& EmptyVar();
 
 	typedef std::function<void(const vl::Object&)> VoidCbObject;
 	typedef std::function<bool(const vl::Object&)> BoolCbObject;

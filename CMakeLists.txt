@@ -16,6 +16,8 @@ macro(setup_module)
 	include_directories(${PROJECT_BINARY_DIR})
 	add_src( 
 		${UTILS_DIR}/src/string_utils.cpp
+		${UTILS_DIR}/src/patterns/Observer.cpp
+		${UTILS_DIR}/src/patterns/Observable.cpp
 	)
 	if (VL_JSON)
 		add_dependency_module(${PROJECT_SOURCE_DIR}/JSONConverter JSONConverter)
