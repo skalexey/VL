@@ -206,6 +206,7 @@ namespace vl
 		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool IsNull() const override { return mData == nullptr; }
+		bool IsEmpty() const { return mData == nullptr || mData->data.empty();}
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		vl::VarPtr Copy() const override;
 		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
