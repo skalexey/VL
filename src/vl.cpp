@@ -5,6 +5,12 @@
 #include "vl_visitor.h"
 #include "VLNotifications.h"
 #include <utils/Log.h>
+#ifdef VL_LOG_VERBOSE
+	SET_LOCAL_LOG_VERBOSE(true);
+#else
+	SET_LOCAL_LOG_VERBOSE(false);
+#endif
+LOG_PREFIX("[VL]: ")
 #ifdef LOG_ON
 	#include <utils/string_utils.h>
 #endif
@@ -303,7 +309,7 @@ namespace vl
 		//else if (ret->IsList())
 		//	ret->AsList().Attach(mData.get(), propName);
 		
-		LOG_VERBOSE(utils::format_str("Create new variable %p in %p with name '%s'", ret, this, propName.c_str()));
+		LOCAL_VERBOSE(utils::format_str("Create new variable %p in %p with name '%s'", ret, this, propName.c_str()));
 
 		return *ret;
 	}
@@ -865,7 +871,7 @@ namespace vl
 		NOTIFY_BEFORE("set", index, mData)
 		auto& result = *(mData->data[index] = varPtr);
 		
-		LOG_VERBOSE(utils::format_str("Create new variable %p in %p at index '%d'", &result, this, index));
+		LOCAL_VERBOSE(utils::format_str("Create new variable %p in %p at index '%d'", &result, this, index));
 		
 		NOTIFY_AFTER(mData)
 		return { index, result };
