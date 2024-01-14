@@ -8,6 +8,7 @@ macro(setup_module)
 
 	option(VL_JSON "Connect JSON support infrastructure (JSONConverter)" OFF)
 	option(VL_TESTS "Include Test target" OFF)
+	option(VL_LOG_VERBOSE "Enable verbose logging" ON)
 
 	# Utils dependency
 	set(UTILS_DIR "${DEPS}/Utils")
