@@ -1,4 +1,4 @@
-Build-cmake/
+Build-cmake*/
 build/
 dependencies/
 tmp/
