@@ -38,7 +38,7 @@ namespace vl
 	typedef ListVar List;
 	typedef AbstractVar Var;
 	typedef NullVar Null;
-	typedef std::shared_ptr<Var> VarPtr;
+	class VarPtr;
 
 	extern vl::Object& NullObject();
 	extern vl::ListVar& EmptyList();

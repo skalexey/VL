@@ -10,9 +10,49 @@
 #include "vl_fwd.h"
 #include <utils/patterns/Observer.h>
 #include <utils/patterns/Observable.h>
+#include <vl/var_ptr.h>
 
 namespace vl
 {
+	// AbstractVar
+	// Make it possible to store a list of various variables
+	class AbstractVar : public VarInterface
+	{
+	public:
+		const BoolVar& AsBool() const override;
+		const NumberVar& AsNumber() const override;
+		const StringVar& AsString() const override;
+		const ObjectVar& AsObject() const override;
+		const ListVar& AsList() const override;
+		BoolVar& AsBool() override;
+		NumberVar& AsNumber() override;
+		StringVar& AsString() override;
+		ObjectVar& AsObject() override;
+		ListVar& AsList() override;
+		bool IsBool() const override { return false; }
+		bool IsNumber() const override { return false; }
+		bool IsString() const override { return false; }
+		bool IsObject() const override { return false; }
+		bool IsList() const override { return false; }
+		bool IsNull() const override { return true; }
+		virtual bool Accept(Visitor& v, const char* name = nullptr) const { return true; }
+		Type GetType() const override;
+		virtual VarPtr Ptr() const = 0;
+		std::string ToStr() const override { return ""; }
+		const void* Data() const override;
+		vl::VarPtr Copy() const override;
+		const VarPtr& operator[](const char* s) const override;
+		VarPtr& operator[](const char* s) override;
+
+	protected:
+		template <typename T>
+		VarPtr PtrImpl(const T* body) const {
+			auto p = std::make_shared<T>();
+			*(p.get()) = *body;
+			return std::dynamic_pointer_cast<AbstractVar>(p);
+		}
+	};
+
 	// Return proto name if assigned
 	// Polymorphic variable (pointer) creation with any supported type
 	VarPtr MakePtr(bool value);
@@ -26,45 +66,6 @@ namespace vl
 	VarPtr MakePtr(const Var& value);
 	VarPtr MakePtr(); // Return a null var
 
-	// AbstractVar
-	// Make it possible to store a list of various variables
-	class AbstractVar
-	{
-	public:
-		virtual const BoolVar& AsBool() const;
-		virtual const NumberVar& AsNumber() const;
-		virtual const StringVar& AsString() const;
-		virtual const ObjectVar& AsObject() const;
-		virtual const ListVar& AsList() const;
-		virtual BoolVar& AsBool();
-		virtual NumberVar& AsNumber();
-		virtual StringVar& AsString();
-		virtual ObjectVar& AsObject();
-		virtual ListVar& AsList();
-		virtual bool IsBool() const { return false; }
-		virtual bool IsNumber() const { return false; }
-		virtual bool IsString() const { return false; }
-		virtual bool IsObject() const { return false; }
-		virtual bool IsList() const { return false; }
-		virtual bool IsNull() const { return true; }
-		virtual Type GetType() const;
-		virtual VarPtr Ptr() const = 0;
-		virtual bool Accept(Visitor& v, const char* name = nullptr) const { return true; }
-		virtual operator bool() const { return !IsNull(); }
-		virtual std::string ToStr() const { return ""; }
-		virtual const void* Data() const;
-		virtual vl::VarPtr Copy() const;
-		virtual const Var& operator[](const char* s) const;
-		virtual Var& operator[](const char* s);
-
-	protected:
-		template <typename T>
-		VarPtr PtrImpl(const T* body) const {
-			auto p = std::make_shared<T>();
-			*(p.get()) = *body;
-			return std::dynamic_pointer_cast<AbstractVar>(p);
-		}
-	};
 
 	// ======= Concrete Vars =======
 	// BoolVar declaration
@@ -185,18 +186,18 @@ namespace vl
 		ObjectVar& AsObject() override;
 		Type GetType() const override;
 		std::size_t Size() const;
-		Var& Set(const std::string& propName);
-		Var& Set(const std::string& propName, const Var& value);
-		Var& Set(const std::string& propName, const VarPtr& varPtr);
+		VarPtr& Set(const std::string& propName);
+		VarPtr& Set(const std::string& propName, const Var& value);
+		VarPtr& Set(const std::string& propName, const VarPtr& varPtr);
 		template <typename T>
-		Var& Set(const std::string& propName, const T& value)
+		VarPtr& Set(const std::string& propName, const T& value)
 		{
 			return Set(propName, MakePtr(value));
 		}
-		const Var& operator[](const char* s) const override;
-		Var& operator[](const char* s) override;
-		const Var& Get(const std::string& propName) const;
-		Var& Get(const std::string& propName);
+		const VarPtr& operator[](const char* s) const override;
+		VarPtr& operator[](const char* s) override;
+		const VarPtr& Get(const std::string& propName) const;
+		VarPtr& Get(const std::string& propName);
 		bool Has(const std::string& propName) const;
 		bool HasOwn(const std::string& propName) const;
 		std::shared_ptr<std::string> GetRelativePath(const std::string& propName) const;

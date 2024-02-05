@@ -72,7 +72,7 @@ namespace vl
 
 	VarPtr MakePtr(const NullVar& value)
 	{
-		return std::make_shared<NullVar>();
+		return std::dynamic_pointer_cast<Var>(std::make_shared<NullVar>());
 	}
 
 	VarPtr MakePtr(const Var& value)
@@ -97,7 +97,7 @@ namespace vl
 
 	VarPtr MakePtr()
 	{
-		return std::make_shared<vl::NullVar>();
+		return std::dynamic_pointer_cast<Var>(std::make_shared<vl::NullVar>());
 	}
 
 	// ======= Begin of AbstractVar definitions =======
@@ -175,14 +175,15 @@ namespace vl
 		return Ptr();
 	}
 
-	const Var& AbstractVar::operator[](const char* s) const
+	const VarPtr& AbstractVar::operator[](const char* s) const
 	{
-		return EmptyVar();
+		return VarPtr();
 	}
 
-	Var& AbstractVar::operator[](const char* s)
+	VarPtr& AbstractVar::operator[](const char* s)
 	{
-		return EmptyVar();
+		static VarPtr emptyVar;
+		return emptyVar;
 	}
 	// ======= End of AbstractVar definitions =======
 
@@ -200,13 +201,13 @@ namespace vl
 
 	void PropsDataType::Notify(vl::VarPtr info)
 	{
-		info->AsObject().Set("who", "vl");
+		info.AsObject().Set("who", "vl");
 		return Observable::Notify(info);
 	}
 
 	void PropsDataType::Update(Observable* sender, vl::VarPtr info)
 	{
-		auto& o = info->AsObject();
+		auto& o = info.AsObject();
 		if (o.Get("who").AsString().Val() != "vl")
 			return;
 		if (auto subscriptionInfo = GetSubscriptionInfo(sender))
@@ -261,22 +262,23 @@ namespace vl
 		return mData ? mData->data.size() : 0;
 	}
 
-	Var& ObjectVar::Set(const std::string& propName)
+	VarPtr& ObjectVar::Set(const std::string& propName)
 	{
 		return Set(propName, MakePtr(NullVar()));
 	}
 
-	Var& ObjectVar::Set(const std::string& propName, const Var& value)
+	VarPtr& ObjectVar::Set(const std::string& propName, const Var& value)
 	{
 		return Set(propName, MakePtr(value));
 	}
 
-	Var& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
+	VarPtr& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
 	{
+		static VarPtr emptyVar;
 		if (!mData)
-			return EmptyVar();
+			return emptyVar;
 
-		Var* ret = nullptr;
+		VarPtr* ret = nullptr;
 
 		if (mData->HasSubscribers())
 		{
@@ -287,21 +289,21 @@ namespace vl
 				// Send "before" notification
 				SEND_NOTIFY_BEFORE("add", propName, mData)
 				// Set the data
-				ret = &*(mData->data[propName] = varPtr);
+				ret = &(mData->data[propName] = varPtr);
 			}
 			else
 			{
 				// Send "before" notification
 				SEND_NOTIFY_BEFORE("set", propName, mData);
 				// Set the data
-				ret = &*(it->second = varPtr);
+				ret = &(it->second = varPtr);
 			}
 			// Send "after" notification
 			NOTIFY_AFTER(mData)
 		}
 		else
 		{
-			ret = &*(mData->data[propName] = varPtr);
+			ret = &(mData->data[propName] = varPtr);
 		}
 
 		if (ret->IsObject())
@@ -314,36 +316,38 @@ namespace vl
 		return *ret;
 	}
 
-	const Var& ObjectVar::Get(const std::string& propName) const
+	const VarPtr& ObjectVar::Get(const std::string& propName) const
 	{
+		static VarPtr emptyVar;
 		if (!mData)
-			return EmptyVar();
+			return emptyVar;
 		auto it = mData->data.find(propName);
 		if (it != mData->data.end())
-			return *it->second;
+			return it->second;
 		else
 		{
 			if (auto& proto = GetPrototype())
 				return proto.Get(propName);
 		}
-		return EmptyVar();
+		return emptyVar;
 	}
 
-	Var& ObjectVar::Get(const std::string& propName)
+	VarPtr& ObjectVar::Get(const std::string& propName)
 	{
-		return const_cast<Var&>(const_cast<const ObjectVar*>(this)->Get(propName));
+		return const_cast<VarPtr&>(const_cast<const ObjectVar*>(this)->Get(propName));
 	}
 
-	const Var& ObjectVar::operator[](const char* s) const
+	const VarPtr& ObjectVar::operator[](const char* s) const
 	{
 		return Get(s);
 	}
 
-	Var& ObjectVar::operator[](const char* s)
+	VarPtr& ObjectVar::operator[](const char* s)
 	{
-		if (!Has(s))
-			return Set(s, vl::Object());
-		return Get(s);
+		auto& ptr = Get(s);
+		if (!ptr)
+			return Set(s, VarPtr());
+		return ptr;
 	}
 	
 	bool ObjectVar::Has(const std::string& propName) const
@@ -436,10 +440,10 @@ namespace vl
 				NOTIFY_BEFORE("remove", propName, mData)
 				// Unsubscribe from it's updates
 				auto& v = it->second;
-				if (v->IsObject())
-					v->AsObject().Detach(mData.get());
-				else if (v->IsList())
-					v->AsList().Detach(mData.get());
+				if (v.IsObject())
+					v.AsObject().Detach(mData.get());
+				else if (v.IsList())
+					v.AsList().Detach(mData.get());
 
 				// Erase the data
 				mData->data.erase(it);
@@ -539,14 +543,14 @@ namespace vl
 		else
 		{
 			std::unordered_set<std::string> keys;
-			const vl::Var* proto = nullptr;
+			vl::VarPtr proto = nullptr;
 			for (auto& [propName, value] : mData->data)
 			{
 				if (!pred(propName, *value))
 					return false;
 				keys.emplace(propName);
 				if (propName == "proto")
-					proto = value.get();
+					proto = value;
 			}
 			if (proto != nullptr)
 				if (proto->IsObject())
@@ -777,10 +781,10 @@ namespace vl
 				for (int i = 0; i < sz; i++)
 				{
 					auto& e = mData->data[i];
-					if (e->IsObject())
-						e->AsObject().Clear(recursive);
-					else if (e->IsList())
-						e->AsList().Clear(recursive);
+					if (e.IsObject())
+						e.AsObject().Clear(recursive);
+					else if (e.IsList())
+						e.AsList().Clear(recursive);
 				}
 				mData->data.clear();
 			}
