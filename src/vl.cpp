@@ -23,6 +23,12 @@ namespace vl
 		return nullObject;
 	}
 
+	vl::VarPtr& EmptyVarPtr()
+	{
+		static vl::VarPtr emptyVarPtr;
+		return emptyVarPtr;
+	}
+
 	vl::NullVar& EmptyVar()
 	{
 		static vl::NullVar emptyVar;
@@ -182,8 +188,7 @@ namespace vl
 
 	VarPtr& AbstractVar::operator[](const char* s)
 	{
-		static VarPtr emptyVar;
-		return emptyVar;
+		return EmptyVarPtr();
 	}
 	// ======= End of AbstractVar definitions =======
 
@@ -274,9 +279,8 @@ namespace vl
 
 	VarPtr& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
 	{
-		static VarPtr emptyVar;
 		if (!mData)
-			return emptyVar;
+			return EmptyVarPtr();
 
 		VarPtr* ret = nullptr;
 
@@ -318,9 +322,8 @@ namespace vl
 
 	const VarPtr& ObjectVar::Get(const std::string& propName) const
 	{
-		static VarPtr emptyVar;
 		if (!mData)
-			return emptyVar;
+			return EmptyVarPtr();
 		auto it = mData->data.find(propName);
 		if (it != mData->data.end())
 			return it->second;
@@ -329,7 +332,7 @@ namespace vl
 			if (auto& proto = GetPrototype())
 				return proto.Get(propName);
 		}
-		return emptyVar;
+		return EmptyVarPtr();
 	}
 
 	VarPtr& ObjectVar::Get(const std::string& propName)

@@ -241,6 +241,8 @@ namespace vl
 	
 	// Empty var used to return it by reference to some functions
 	extern vl::NullVar& EmptyVar();
+	
+	extern vl::VarPtr& EmptyVarPtr();
 
 	// ListVar declaration
 	// Sharable
