@@ -285,6 +285,12 @@ namespace vl
 		bool Remove(int index);
 		const Var& At(int index) const;
 		Var& At(int index);
+		Var& operator[](int index) {
+			return At(index);
+		}
+		const Var& operator[](int index) const {
+			return At(index);
+		}
 		ListInsertRet Add(const VarPtr& varPtr, int indexBefore = -1);
 		template <typename T>
 		ListInsertRet Add(const T& value, int indexBefore = -1)
