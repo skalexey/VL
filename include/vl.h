@@ -285,12 +285,12 @@ namespace vl
 		}
 		void Clear(bool recursive = false);
 		bool Remove(int index);
-		const Var& At(int index) const;
-		Var& At(int index);
-		Var& operator[](int index) {
+		const VarPtr& At(int index) const;
+		VarPtr& At(int index);
+		const VarPtr& operator[](int index) {
 			return At(index);
 		}
-		const Var& operator[](int index) const {
+		const VarPtr& operator[](int index) const {
 			return At(index);
 		}
 		ListInsertRet Add(const VarPtr& varPtr, int indexBefore = -1);

@@ -820,17 +820,17 @@ namespace vl
 		return false;
 	}
 
-	const Var& ListVar::At(int index) const
+	const VarPtr& ListVar::At(int index) const
 	{
 		// Don't check the range. Should be checked on the level above
 		if (mData && index >= 0 && index < mData->data.size())
-			return *mData->data[index];
-		return vl::EmptyVar();
+			return mData->data[index];
+		return vl::EmptyVarPtr();
 	}
 
-	Var& ListVar::At(int index)
+	VarPtr& ListVar::At(int index)
 	{
-		return const_cast<Var&>(const_cast<const ListVar*>(this)->At(index));
+		return const_cast<VarPtr&>(const_cast<const ListVar*>(this)->At(index));
 	}
 
 	ListInsertRet ListVar::Add(const VarPtr& varPtr, int indexBefore)
