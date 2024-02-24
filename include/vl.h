@@ -22,16 +22,19 @@ namespace vl
 		const BoolVar& AsBool() const override;
 		const NumberVar& AsNumber() const override;
 		const StringVar& AsString() const override;
+		const PointerVar& AsPointer() const override;
 		const ObjectVar& AsObject() const override;
 		const ListVar& AsList() const override;
 		BoolVar& AsBool() override;
 		NumberVar& AsNumber() override;
 		StringVar& AsString() override;
+		PointerVar& AsPointer() override;
 		ObjectVar& AsObject() override;
 		ListVar& AsList() override;
 		bool IsBool() const override { return false; }
 		bool IsNumber() const override { return false; }
 		bool IsString() const override { return false; }
+		bool IsPointer() const override { return false; }
 		bool IsObject() const override { return false; }
 		bool IsList() const override { return false; }
 		bool IsNull() const override { return true; }
@@ -52,20 +55,6 @@ namespace vl
 			return std::dynamic_pointer_cast<AbstractVar>(p);
 		}
 	};
-
-	// Return proto name if assigned
-	// Polymorphic variable (pointer) creation with any supported type
-	VarPtr MakePtr(bool value);
-	VarPtr MakePtr(int value);
-	VarPtr MakePtr(float value);
-	VarPtr MakePtr(const char* value);
-	VarPtr MakePtr(const std::string& value);
-	VarPtr MakePtr(const ObjectVar& value);
-	VarPtr MakePtr(const ListVar& value);
-	VarPtr MakePtr(const NullVar& value);
-	VarPtr MakePtr(const Var& value);
-	VarPtr MakePtr(); // Return a null var
-
 
 	// ======= Concrete Vars =======
 	// BoolVar declaration
@@ -139,6 +128,34 @@ namespace vl
 		std::string mData;
 	};
 
+	// PointerVar declaration
+	// Non sharable
+	class PointerVar : public AbstractVar
+	{
+	public:
+		PointerVar() = default;
+		PointerVar(const void* value) : mData((void*)value) {}
+		bool IsPointer() const override { return true; }
+		const PointerVar& AsPointer() const override { return *this; }
+		PointerVar& AsPointer() override { return *this; }
+		Type GetType() const override;
+		VarPtr Ptr() const override { return PtrImpl(this); }
+		template <typename T = void>
+		const T* GetVal() const { return reinterpret_cast<const T*>(mData); }
+		template <typename T = void>
+		T* Val() const { return reinterpret_cast<T*>(mData); }
+		bool IsNull() const override { return false; }
+		bool Accept(Visitor& v, const char* name = nullptr) const override;
+		std::string ToStr() const override;
+		PointerVar& operator=(void* val) {
+			mData = val;
+			return *this;
+		}
+
+	private:
+		void* mData = nullptr;
+	};
+
 	typedef std::unordered_map<std::string, VarPtr> PropsContainerType;
 
 	// Return type of ObjectVar::Set
@@ -178,6 +195,8 @@ namespace vl
 	public:
 		ObjectVar() = default;
 		ObjectVar(const ObjectDataType& dataPtr);
+		ObjectVar(std::nullptr_t null_ptr)
+		: mData(nullptr) {}
 		bool IsObject() const override { return true; }
 		bool operator == (const ObjectVar& right) const;
 		bool operator == (const ObjectVar& right);
@@ -273,6 +292,12 @@ namespace vl
 	class ListVar : public AbstractVar
 	{
 	public:
+		ListVar() = default;
+		template <typename T>
+		ListVar(const std::vector<T>& data) {
+			for (const auto& d : data)
+				Add(d);
+		}
 		bool IsList() const override { return true; }
 		const ListVar& AsList() const override { return *this; }
 		ListVar& AsList() override { return *this; }

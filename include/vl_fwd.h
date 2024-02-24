@@ -10,6 +10,7 @@ namespace vl
 		Bool,
 		Number,
 		String,
+		Pointer,
 		Object,
 		List,
 		Null,
@@ -19,6 +20,7 @@ namespace vl
 	class BoolVar;
 	class NumberVar;
 	class StringVar;
+	class PointerVar;
 	class ObjectVar;
 	class ListVar;
 	class NullVar;
@@ -34,6 +36,7 @@ namespace vl
 	typedef BoolVar Bool;
 	typedef NumberVar Number;
 	typedef StringVar String;
+	typedef PointerVar Pointer;
 	typedef ObjectVar Object;
 	typedef ListVar List;
 	typedef AbstractVar Var;
@@ -46,4 +49,18 @@ namespace vl
 
 	typedef std::function<void(const vl::Object&)> VoidCbObject;
 	typedef std::function<bool(const vl::Object&)> BoolCbObject;
+
+		// Return proto name if assigned
+	// Polymorphic variable (pointer) creation with any supported type
+	VarPtr MakePtr(bool value);
+	VarPtr MakePtr(int value);
+	VarPtr MakePtr(float value);
+	VarPtr MakePtr(const char* value);
+	VarPtr MakePtr(const std::string& value);
+	VarPtr MakePtr(const void* value);
+	VarPtr MakePtr(const ObjectVar& value);
+	VarPtr MakePtr(const ListVar& value);
+	VarPtr MakePtr(const NullVar& value);
+	VarPtr MakePtr(const Var& value);
+	VarPtr MakePtr(); // Return a null var
 }

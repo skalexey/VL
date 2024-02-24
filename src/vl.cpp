@@ -66,6 +66,11 @@ namespace vl
 		return std::dynamic_pointer_cast<Var>(std::make_shared<StringVar>(value));
 	}
 
+	VarPtr MakePtr(const void* value)
+	{
+		return std::dynamic_pointer_cast<Var>(std::make_shared<PointerVar>(value));
+	}
+
 	VarPtr MakePtr(const ObjectVar& value)
 	{
 		return std::dynamic_pointer_cast<Var>(std::make_shared<ObjectVar>(value));
@@ -89,6 +94,8 @@ namespace vl
 			return MakePtr(value.AsNumber().Val());
 		else if (value.IsString())
 			return MakePtr(value.AsString().Val());
+		else if (value.IsPointer())
+			return MakePtr(value.AsPointer().Val());
 		else if (value.IsObject())
 			return MakePtr(value.AsObject());
 		else if (value.IsList())
@@ -128,6 +135,13 @@ namespace vl
 		return emptyVar;
 	}
 
+	const PointerVar& AbstractVar::AsPointer() const
+	{
+		// Default implementation
+		static PointerVar emptyVar;
+		return emptyVar;
+	}
+
 	const ObjectVar& AbstractVar::AsObject() const
 	{
 		// Default implementation
@@ -153,6 +167,11 @@ namespace vl
 	StringVar& AbstractVar::AsString()
 	{
 		return const_cast<StringVar&>(const_cast<const AbstractVar*>(this)->AsString());
+	}
+
+	PointerVar& AbstractVar::AsPointer()
+	{
+		return const_cast<PointerVar&>(const_cast<const AbstractVar*>(this)->AsPointer());
 	}
 
 	ObjectVar& AbstractVar::AsObject()
@@ -698,13 +717,13 @@ namespace vl
 		mData = val;
 		return *this;
 	}
+	// ======= End of NumberVar definitions =======
 
 	// ======= Begin of StringVar definitions =======
 	Type StringVar::GetType() const
 	{
 		return Type::String;
 	}
-	// ======= End of NumberVar definitions =======
 
 	bool StringVar::Accept(Visitor& v, const char* name) const
 	{
@@ -716,6 +735,24 @@ namespace vl
 		return Val();
 	}
 	// ======= End of StringVar definitions =======
+
+	// ======= Begin of PointerVar definitions =======
+	Type PointerVar::GetType() const
+	{
+		return Type::Pointer;
+	}
+
+	bool PointerVar::Accept(Visitor& v, const char* name) const
+	{
+		return v.VisitPointer(*this, name);
+	}
+
+	std::string PointerVar::ToStr() const
+	{
+		std::stringstream ss;
+		ss << Val();
+		return ss.str();
+	}
 
 	Type ListVar::GetType() const
 	{

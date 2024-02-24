@@ -14,6 +14,11 @@ namespace vl
 		VarPtr() = default;
 		VarPtr(const Ptr_t& ptr) : mPtr(ptr) {}
 		VarPtr(std::nullptr_t null_ptr) : mPtr(nullptr) {}
+		VarPtr(const char* str);
+		VarPtr(const std::string& str);
+		VarPtr(bool b);
+		VarPtr(int i);
+		VarPtr(const void* ptr);
 		bool operator==(const VarPtr& right);
 		bool operator==(std::nullptr_t null_ptr) {
 			return mPtr == nullptr;
@@ -44,16 +49,19 @@ namespace vl
 		const BoolVar& AsBool() const override;
 		const NumberVar& AsNumber() const override;
 		const StringVar& AsString() const override;
+		const PointerVar& AsPointer() const override;
 		const ObjectVar& AsObject() const override;
 		const ListVar& AsList() const override;
 		BoolVar& AsBool() override;
 		NumberVar& AsNumber() override;
 		StringVar& AsString() override;
+		PointerVar& AsPointer() override;
 		ObjectVar& AsObject() override;
 		ListVar& AsList() override;
 		bool IsBool() const override;
 		bool IsNumber() const override;
 		bool IsString() const override;
+		bool IsPointer() const override;
 		bool IsObject() const override;
 		bool IsList() const override;
 		bool IsNull() const override;

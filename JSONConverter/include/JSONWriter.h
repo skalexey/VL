@@ -15,6 +15,7 @@ namespace vl
 		bool VisitBool(const BoolVar& var, const char* name) override;
 		bool VisitNumber(const NumberVar& var, const char* name) override;
 		bool VisitString(const StringVar& var, const char* name) override;
+		bool VisitPointer(const PointerVar& var, const char* name) override;
 		bool VisitObject(const ObjectVar& var, const char* name) override;
 		bool EndVisitObject(const ObjectVar& var, const char* name) override;
 		bool VisitList(const ListVar& var, const char* name) override;

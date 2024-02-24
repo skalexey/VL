@@ -4,6 +4,26 @@
 namespace vl
 {
 	// ======= Begin of VarPtr definitions =======
+	VarPtr::VarPtr(const char* str)
+		: mPtr(std::make_shared<StringVar>(str))
+	{}
+
+	VarPtr::VarPtr(const std::string& str)
+		: mPtr(std::make_shared<StringVar>(str))
+	{}
+
+	VarPtr::VarPtr(bool b)
+		: mPtr(std::make_shared<BoolVar>(b))
+	{}
+
+	VarPtr::VarPtr(int i)
+		: mPtr(std::make_shared<NumberVar>(i))
+	{}
+
+	VarPtr::VarPtr(const void* ptr)
+		: mPtr(std::make_shared<PointerVar>(ptr))
+	{}	
+
 	bool VarPtr::operator==(const VarPtr& right)
 	{
 		return *mPtr == *right.mPtr;
@@ -22,6 +42,11 @@ namespace vl
 	const StringVar& VarPtr::AsString() const
 	{
 		return mPtr->AsString();
+	}
+
+	const PointerVar& VarPtr::AsPointer() const
+	{
+		return mPtr->AsPointer();
 	}
 	
 	const ObjectVar& VarPtr::AsObject() const
@@ -47,6 +72,11 @@ namespace vl
 	StringVar& VarPtr::AsString()
 	{
 		return mPtr->AsString();
+	}
+
+	PointerVar& VarPtr::AsPointer()
+	{
+		return mPtr->AsPointer();
 	}
 	
 	ObjectVar& VarPtr::AsObject()
@@ -77,6 +107,11 @@ namespace vl
 	bool VarPtr::IsString() const
 	{
 		return mPtr ? mPtr->IsString() : false;
+	}
+
+	bool VarPtr::IsPointer() const
+	{
+		return mPtr ? mPtr->IsPointer() : false;
 	}
 	
 	bool VarPtr::IsObject() const

@@ -128,6 +128,14 @@ bool vl::JSONWriter::VisitString(const StringVar& var, const char* name)
 	return true;
 }
 
+bool vl::JSONWriter::VisitPointer(const PointerVar& var, const char* name)
+{
+	rapidjson::Value val;
+	val.SetString(var.ToStr().c_str(), mDoc.GetAllocator());
+	AddMember(val, name);
+	return true;
+}
+
 bool vl::JSONWriter::VisitObject(const ObjectVar& var, const char* name)
 {
 	if (!var.IsNull())

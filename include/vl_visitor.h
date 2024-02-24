@@ -9,6 +9,7 @@ namespace vl
 		virtual bool VisitBool(const BoolVar& var, const char* name) { return true; }
 		virtual bool VisitNumber(const NumberVar& var, const char* name) { return true; }
 		virtual bool VisitString(const StringVar& var, const char* name) { return true; }
+		virtual bool VisitPointer(const PointerVar& var, const char* name) { return true; }
 		virtual bool VisitObject(const ObjectVar& var, const char* name) { return true; }
 		virtual bool EndVisitObject(const ObjectVar& var, const char* name) { return true; }
 		virtual bool VisitList(const ListVar& var, const char* name) { return true; }
