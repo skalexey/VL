@@ -6,9 +6,9 @@
 #include "VLNotifications.h"
 #include <utils/Log.h>
 #ifdef VL_LOG_VERBOSE
-	SET_LOCAL_LOG_VERBOSE(true);
+	SET_LOCAL_LOG_LEVEL(verbose);
 #else
-	SET_LOCAL_LOG_VERBOSE(false);
+	SET_LOCAL_LOG_LEVEL(debug);
 #endif
 LOG_PREFIX("[VL]: ")
 #ifdef LOG_ON
