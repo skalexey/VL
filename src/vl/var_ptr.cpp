@@ -158,5 +158,10 @@ namespace vl
 	{
 		return (*mPtr).operator[](s);
 	}
+
+	bool VarPtr::Same(const VarInterface& other) const
+	{
+		return mPtr->Same(other);
+	}
 	// ======= End of VarPtr definitions =======
 }

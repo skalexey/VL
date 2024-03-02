@@ -46,6 +46,7 @@ namespace vl
 		vl::VarPtr Copy() const override;
 		const VarPtr& operator[](const char* s) const override;
 		VarPtr& operator[](const char* s) override;
+		bool Same(const VarInterface& right) const override { return false; }
 
 	protected:
 		template <typename T>
@@ -73,8 +74,10 @@ namespace vl
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
 		BoolVar& operator=(bool val);
-		
+
 	private:
 		bool mData = false;
 	};
@@ -95,6 +98,8 @@ namespace vl
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		float Val() const { return mData; }
 		std::string ToStr() const override;
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
 		NumberVar& operator=(int val);
 		NumberVar& operator=(double val);
 		NumberVar& operator=(float val);
@@ -119,6 +124,8 @@ namespace vl
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
 		StringVar& operator=(const std::string& val) {
 			mData = val;
 			return *this;
@@ -147,6 +154,8 @@ namespace vl
 		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
 		PointerVar& operator=(void* val) {
 			mData = val;
 			return *this;
@@ -198,8 +207,9 @@ namespace vl
 		ObjectVar(std::nullptr_t null_ptr)
 		: mData(nullptr) {}
 		bool IsObject() const override { return true; }
-		bool operator == (const ObjectVar& right) const;
-		bool operator == (const ObjectVar& right);
+		bool operator==(const VarInterface& right) const;
+		bool operator==(const VarInterface& right);
+		bool Same(const VarInterface& right) const override;
 		operator bool() const override;
 		const ObjectVar& AsObject() const override;
 		ObjectVar& AsObject() override;
@@ -345,7 +355,9 @@ namespace vl
 			return mData.get();
 		}
 		vl::VarPtr Copy() const override;
-
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
+		
 	private:
 		ListVarDataType mData = std::make_shared<ListDataType>();
 	};
@@ -364,7 +376,7 @@ namespace vl
 		const void* Data() const override {
 			return nullptr;
 		}
+		bool Same(const VarInterface& right) const override;
+		bool operator==(const VarInterface& right) const;
 	};
-
-	
 }

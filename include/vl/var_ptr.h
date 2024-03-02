@@ -72,5 +72,6 @@ namespace vl
 		vl::VarPtr Copy() const override;
 		const VarPtr& operator[](const char* s) const override;
 		VarPtr& operator[](const char* s) override;
+		bool Same(const VarInterface& other) const override;
 	};
 }

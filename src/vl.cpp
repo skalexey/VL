@@ -251,14 +251,39 @@ namespace vl
 		: mData(dataPtr)
 	{}
 
-	bool ObjectVar::operator==(const ObjectVar& right) const
+	bool ObjectVar::operator==(const VarInterface& right) const
 	{
-		return right.mData.get() == mData.get();
+		if (!right.IsObject())
+			return false;
+		return right.AsObject().mData.get() == mData.get();
 	}
 
-	bool ObjectVar::operator==(const ObjectVar& right)
+	bool ObjectVar::operator==(const VarInterface& right)
 	{
 		return const_cast<const ObjectVar*>(this)->operator==(right);
+	}
+
+	bool ObjectVar::Same(const VarInterface& right) const
+	{
+		// Deep comparison
+		if (!right.IsObject())
+			return false;
+		auto& right_object = right.AsObject();
+		if (right_object.mData.get() == mData.get())
+			return true;
+		if (!mData || !right_object.mData)
+			return false;
+		if (mData->data.size() != right_object.mData->data.size())
+			return false;
+		for (auto& [propName, prop] : mData->data)
+		{
+			auto it = right_object.mData->data.find(propName);
+			if (it == right_object.mData->data.end())
+				return false;
+			if (!(prop.Same(it->second)))
+				return false;
+		}
+		return true;
 	}
 
 	ObjectVar::operator bool() const
@@ -680,6 +705,18 @@ namespace vl
 		return *this;
 	}
 
+	bool BoolVar::operator==(const VarInterface& right) const
+	{
+		if (!right.IsBool())
+			return false;
+		return right.AsBool().mData == mData;
+	}
+
+	bool BoolVar::Same(const VarInterface& right) const
+	{
+		return *this == right;
+	}
+
 	// ======= End of BoolVar definitions =======
 
 	// ======= Begin of NumberVar definitions =======
@@ -698,6 +735,18 @@ namespace vl
 		std::stringstream ss;
 		ss << Val();
 		return ss.str();
+	}
+
+	bool NumberVar::Same(const VarInterface& right) const
+	{
+		return *this == right;
+	}
+
+	bool NumberVar::operator==(const VarInterface& right) const
+	{
+		if (!right.IsNumber())
+			return false;
+		return right.AsNumber().mData == mData;
 	}
 
 	NumberVar& NumberVar::operator=(int val)
@@ -734,6 +783,19 @@ namespace vl
 	{
 		return Val();
 	}
+
+	bool StringVar::Same(const VarInterface& right) const
+	{
+		return *this == right;
+	}
+
+	bool StringVar::operator==(const VarInterface& right) const
+	{
+		if (!right.IsString())
+			return false;
+		return right.AsString().Val().compare(mData) == 0;
+	}
+	
 	// ======= End of StringVar definitions =======
 
 	// ======= Begin of PointerVar definitions =======
@@ -754,12 +816,23 @@ namespace vl
 		return ss.str();
 	}
 
+	bool PointerVar::operator==(const VarInterface& right) const
+	{
+		if (!right.IsPointer())
+			return false;
+		return right.AsPointer().mData == mData;
+	}
+
+	bool PointerVar::Same(const VarInterface& right) const
+	{
+		return *this == right;
+	}
+
+	// ======= Begin of ListVar definitions =======
 	Type ListVar::GetType() const
 	{
 		return Type::List;
 	}
-
-	// ======= Begin of ListVar definitions =======
 
 	void ListDataType::Notify(vl::VarPtr info)
 	{
@@ -954,6 +1027,28 @@ namespace vl
 		return "[]";
 	}
 
+	bool ListVar::Same(const VarInterface& right) const
+	{
+		if (!right.IsList())
+			return false;
+		auto& right_list = right.AsList();
+		if (right_list.mData.get() == mData.get())
+			return true;
+		if (!mData || !right_list.mData)
+			return false;
+		if (mData->data.size() != right_list.mData->data.size())
+			return false;
+		for (int i = 0; i < mData->data.size(); i++)
+			if (!(mData->data[i].Same(right_list.mData->data[i])))
+				return false;
+		return true;
+	}
+
+	bool ListVar::operator==(const VarInterface& right) const
+	{
+		return mData == right.AsList().mData;
+	}
+
 	// ======= End of ListVarDefinitions =======
 	bool NullVar::Accept(Visitor& v, const char* name) const
 	{
@@ -963,5 +1058,15 @@ namespace vl
 	Type NullVar::GetType() const
 	{
 		return Type::Null;
+	}
+
+	bool NullVar::operator==(const VarInterface& right) const
+	{
+		return right.IsNull();
+	}
+
+	bool NullVar::Same(const VarInterface& right) const
+	{
+		return *this == right;
 	}
 }
