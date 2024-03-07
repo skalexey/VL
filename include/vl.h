@@ -156,8 +156,8 @@ namespace vl
 		std::string ToStr() const override;
 		bool Same(const VarInterface& right) const override;
 		bool operator==(const VarInterface& right) const;
-		PointerVar& operator=(void* val) {
-			mData = val;
+		PointerVar& operator=(const void* val) {
+			mData = (void*)val;
 			return *this;
 		}
 
