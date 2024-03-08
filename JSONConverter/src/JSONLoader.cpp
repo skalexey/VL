@@ -1,7 +1,7 @@
 #include <cstring>
 #include "JSONLoader.h"
 #include "vl.h"
-#include "utils/Log.h"
+#include "utils/log.h"
 #ifdef LOG_ON
 	#include <utils/string_utils.h>
 #endif

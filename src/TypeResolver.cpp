@@ -1,6 +1,6 @@
 #include "TypeResolver.h"
 #include "vl.h"
-#include <utils/Log.h>
+#include <utils/log.h>
 #include <utils/string_utils.h>
 
 TypeResolver::TypeResolver(

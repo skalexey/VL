@@ -4,7 +4,7 @@
 #include "vl.h"
 #include "vl_visitor.h"
 #include "VLNotifications.h"
-#include <utils/Log.h>
+#include <utils/log.h>
 #ifdef VL_LOG_VERBOSE
 	SET_LOCAL_LOG_LEVEL(verbose);
 #else
