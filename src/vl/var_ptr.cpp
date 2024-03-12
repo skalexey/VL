@@ -22,108 +22,18 @@ namespace vl
 
 	VarPtr::VarPtr(const void* ptr)
 		: mPtr(std::make_shared<PointerVar>(ptr))
-	{}	
+	{}
+
+	const utils::entity* VarPtr::self() const
+	{
+		return mPtr.get();
+	}
 
 	bool VarPtr::operator==(const VarPtr& right)
 	{
 		return *mPtr == *right.mPtr;
 	}
 	
-	const BoolVar& VarPtr::AsBool() const
-	{
-		return mPtr->AsBool();
-	}
-	
-	const NumberVar& VarPtr::AsNumber() const
-	{
-		return mPtr->AsNumber();
-	}
-	
-	const StringVar& VarPtr::AsString() const
-	{
-		return mPtr->AsString();
-	}
-
-	const PointerVar& VarPtr::AsPointer() const
-	{
-		return mPtr->AsPointer();
-	}
-	
-	const ObjectVar& VarPtr::AsObject() const
-	{
-		return mPtr->AsObject();
-	}
-	
-	const ListVar& VarPtr::AsList() const
-	{
-		return mPtr->AsList();
-	}
-	
-	BoolVar& VarPtr::AsBool()
-	{
-		return mPtr->AsBool();
-	}
-
-	NumberVar& VarPtr::AsNumber()
-	{
-		return mPtr->AsNumber();
-	}
-
-	StringVar& VarPtr::AsString()
-	{
-		return mPtr->AsString();
-	}
-
-	PointerVar& VarPtr::AsPointer()
-	{
-		return mPtr->AsPointer();
-	}
-	
-	ObjectVar& VarPtr::AsObject()
-	{
-		return mPtr->AsObject();
-	}
-
-	ListVar& VarPtr::AsList()
-	{
-		return mPtr->AsList();
-	}
-
-	bool VarPtr::IsNull() const
-	{
-		return mPtr ? mPtr->IsNull() : true;
-	}
-	
-	bool VarPtr::IsBool() const
-	{
-		return mPtr ? mPtr->IsBool() : false;
-	}
-	
-	bool VarPtr::IsNumber() const
-	{
-		return mPtr ? mPtr->IsNumber() : false;
-	}
-
-	bool VarPtr::IsString() const
-	{
-		return mPtr ? mPtr->IsString() : false;
-	}
-
-	bool VarPtr::IsPointer() const
-	{
-		return mPtr ? mPtr->IsPointer() : false;
-	}
-	
-	bool VarPtr::IsObject() const
-	{
-		return mPtr ? mPtr->IsObject() : false;
-	}
-
-	bool VarPtr::IsList() const
-	{
-		return mPtr ? mPtr->IsList() : false;
-	}
-
 	Type VarPtr::GetType() const
 	{
 		return mPtr->GetType();

@@ -51,24 +51,24 @@ bool vl::JSONLoader::AddVar(const vl::VarPtr& ptr)
 		isRoot = true;
 	}
 	auto& c = GetCurrentContainer()->var;
-	if (c.IsObject())
+	if (c.is<vl::Object>())
 	{
 		if (mCurrentKey.empty() && mKeyProcessed)
 		{
 			LOG_WARNING("[JSONLoader] Seems like this is a non existent document");
 			return false;
 		}
-		c.AsObject().Set(mCurrentKey.c_str(), ptr);
+		c.as<vl::Object>().Set(mCurrentKey.c_str(), ptr);
 		mCurrentKey.clear();
 		mKeyProcessed = true;
 	}
-	else if (c.IsList())
+	else if (c.is<vl::List>())
 	{
-		c.AsList().Add(ptr);
+		c.as<vl::List>().Add(ptr);
 	}
 	else
 	{
-		assert(c.IsList() || c.IsObject());
+		assert(c.is<vl::List>() || c.is<vl::Object>());
 	}
 	return true;
 }
@@ -80,14 +80,14 @@ void vl::JSONLoader::PushNewList(ContainerInfo* parentContainer, const std::stri
 
 void vl::JSONLoader::PushNewObject(ContainerInfo* parentContainer, const std::string& listName)
 {
-	if (parentContainer->var.IsObject())
+	if (parentContainer->var.is<vl::Object>())
 		if (parentContainer->name == "types")
 		{
 			auto newContainer = PushNewContainer(true, false, parentContainer, listName);
 			assert(newContainer);
 			// All types should only be objects
-			assert(newContainer->var.IsObject());
-			mTypeRefs[listName] = &newContainer->var.AsObject();
+			assert(newContainer->var.is<vl::Object>());
+			mTypeRefs[listName] = &newContainer->var.as<vl::Object>();
 			return;
 		}
 	PushNewContainer(true, false, parentContainer, listName);
@@ -98,18 +98,18 @@ vl::JSONLoader::ContainerInfo* vl::JSONLoader::PushNewContainer(bool isObject, b
 	if (!isObject && !isList)
 		return nullptr;
 	auto& v = c->var;
-	if (v.IsObject())
+	if (v.is<vl::Object>())
 	{
-		auto& obj = v.AsObject();
+		auto& obj = v.as<vl::Object>();
 		if (isObject)
 			obj.Set(mCurrentKey, vl::Object());
 		else if (isList)
 			obj.Set(mCurrentKey, vl::List());
 		return PushContainer(&*obj.Get(mCurrentKey.c_str()), newContainerName);
 	}
-	else if (v.IsList())
+	else if (v.is<vl::List>())
 	{
-		auto& l = v.AsList();
+		auto& l = v.as<vl::List>();
 		if (isObject)
 			l.Add(vl::Object());
 		else if (isList)
@@ -130,7 +130,7 @@ void vl::JSONLoader::ResolveRefs()
 	for (auto it = mUnresolvedRefs.begin(); it != mUnresolvedRefs.end();)
 	{
 		auto ref = *it;
-		auto& typeId = ref->Get("typeid").AsString().Val();
+		auto& typeId = ref->Get("typeid").as<vl::String>().Val();
 		JSON_LOG_VERBOSE(utils::format_str("	typeId: %s", typeId.c_str()));
 		auto tIt = mTypeRefs.find(typeId);
 		auto moveSubscribers = [&](vl::Object& from, vl::Object& to) {
@@ -264,7 +264,7 @@ bool vl::JSONLoader::StartObject()
 	}
 	else
 	{
-		if (c->var.IsObject())
+		if (c->var.is<vl::Object>())
 			if (mCurrentKey.empty())
 				LOG_WARNING("Empty key with an object body encountered in container '" << c->name << "'");
 		PushNewObject(c, mCurrentKey);
@@ -276,14 +276,14 @@ bool vl::JSONLoader::Key(const Ch* str, SizeType length, bool copy)
 {
 	auto currentContainer = GetCurrentContainer();
 	assert(currentContainer);
-	assert(currentContainer->var.IsObject());
+	assert(currentContainer->var.is<vl::Object>());
 	if (std::strcmp(str, "proto") == 0)
 	{
-		StoreUnresolvedRef(currentContainer->var.AsObject().Set(str, vl::Object()).AsObject());
+		StoreUnresolvedRef(currentContainer->var.as<vl::Object>().Set(str, vl::Object()).as<vl::Object>());
 		mCurrentProto = true;
 	}
 	//else // TODO: get rid of this
-	//	currentContainer->var.AsObject().Set(str);
+	//	currentContainer->var.as<vl::Object>().Set(str);
 	mCurrentKey = str;
 	mKeyProcessed = false;
 	return true;

@@ -64,7 +64,7 @@ void SetProtoTest()
 	pear.Set("isSweet", true);
 
 	// Print the content
-	std::cout << pear.Get("title").AsString().Val() << " properties:\n";
+	std::cout << pear.Get("title").as<vl::String>().Val() << " properties:\n";
 	pear.ForeachProp([&](auto& k, auto& v) {
 		std::cout << "	[" << k << "]: " << v.ToStr() << "\n";
 		return true;

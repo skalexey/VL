@@ -46,25 +46,6 @@ namespace vl
 		const Var& operator*() const {
 			return *mPtr;
 		}
-		const BoolVar& AsBool() const override;
-		const NumberVar& AsNumber() const override;
-		const StringVar& AsString() const override;
-		const PointerVar& AsPointer() const override;
-		const ObjectVar& AsObject() const override;
-		const ListVar& AsList() const override;
-		BoolVar& AsBool() override;
-		NumberVar& AsNumber() override;
-		StringVar& AsString() override;
-		PointerVar& AsPointer() override;
-		ObjectVar& AsObject() override;
-		ListVar& AsList() override;
-		bool IsBool() const override;
-		bool IsNumber() const override;
-		bool IsString() const override;
-		bool IsPointer() const override;
-		bool IsObject() const override;
-		bool IsList() const override;
-		bool IsNull() const override;
 		Type GetType() const override;
 		operator bool() const override;
 		std::string ToStr() const override;
@@ -73,5 +54,8 @@ namespace vl
 		const VarPtr& operator[](const char* s) const override;
 		VarPtr& operator[](const char* s) override;
 		bool Same(const VarInterface& other) const override;
+
+	protected:
+		const utils::entity* self() const override;
 	};
 }

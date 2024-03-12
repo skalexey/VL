@@ -19,25 +19,6 @@ namespace vl
 	class AbstractVar : public VarInterface
 	{
 	public:
-		const BoolVar& AsBool() const override;
-		const NumberVar& AsNumber() const override;
-		const StringVar& AsString() const override;
-		const PointerVar& AsPointer() const override;
-		const ObjectVar& AsObject() const override;
-		const ListVar& AsList() const override;
-		BoolVar& AsBool() override;
-		NumberVar& AsNumber() override;
-		StringVar& AsString() override;
-		PointerVar& AsPointer() override;
-		ObjectVar& AsObject() override;
-		ListVar& AsList() override;
-		bool IsBool() const override { return false; }
-		bool IsNumber() const override { return false; }
-		bool IsString() const override { return false; }
-		bool IsPointer() const override { return false; }
-		bool IsObject() const override { return false; }
-		bool IsList() const override { return false; }
-		bool IsNull() const override { return true; }
 		virtual bool Accept(Visitor& v, const char* name = nullptr) const { return true; }
 		Type GetType() const override;
 		virtual VarPtr Ptr() const = 0;
@@ -65,13 +46,9 @@ namespace vl
 	public:
 		BoolVar() = default;
 		BoolVar(bool value) : mData(value) {}
-		bool IsBool() const override { return true; }
-		const BoolVar& AsBool() const override { return *this; }
-		BoolVar& AsBool() override { return *this; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Val() const { return mData; }
-		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
 		bool Same(const VarInterface& right) const override;
@@ -89,12 +66,8 @@ namespace vl
 	public:
 		NumberVar() = default;
 		NumberVar(float value) : mData(value) {}
-		bool IsNumber() const override { return true; }
-		const NumberVar& AsNumber() const override { return *this; }
-		NumberVar& AsNumber() override { return *this; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
-		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		float Val() const { return mData; }
 		std::string ToStr() const override;
@@ -115,13 +88,9 @@ namespace vl
 	public:
 		StringVar() = default;
 		StringVar(const std::string& value) : mData(value) {}
-		bool IsString() const override { return true; }
-		const StringVar& AsString() const override { return *this; }
-		StringVar& AsString() override { return *this; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		const std::string& Val() const { return mData; }
-		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
 		bool Same(const VarInterface& right) const override;
@@ -142,16 +111,12 @@ namespace vl
 	public:
 		PointerVar() = default;
 		PointerVar(const void* value) : mData((void*)value) {}
-		bool IsPointer() const override { return true; }
-		const PointerVar& AsPointer() const override { return *this; }
-		PointerVar& AsPointer() override { return *this; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		template <typename T = void>
 		const T* GetVal() const { return reinterpret_cast<const T*>(mData); }
 		template <typename T = void>
 		T* Val() const { return reinterpret_cast<T*>(mData); }
-		bool IsNull() const override { return false; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
 		bool Same(const VarInterface& right) const override;
@@ -159,6 +124,9 @@ namespace vl
 		PointerVar& operator=(const void* val) {
 			mData = (void*)val;
 			return *this;
+		}
+		bool IsNull() const override {
+			return mData == nullptr;
 		}
 
 	private:
@@ -206,13 +174,10 @@ namespace vl
 		ObjectVar(const ObjectDataType& dataPtr);
 		ObjectVar(std::nullptr_t null_ptr)
 		: mData(nullptr) {}
-		bool IsObject() const override { return true; }
 		bool operator==(const VarInterface& right) const;
 		bool operator==(const VarInterface& right);
 		bool Same(const VarInterface& right) const override;
 		operator bool() const override;
-		const ObjectVar& AsObject() const override;
-		ObjectVar& AsObject() override;
 		Type GetType() const override;
 		std::size_t Size() const;
 		VarPtr& Set(const std::string& propName);
@@ -235,7 +200,9 @@ namespace vl
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);
 		VarPtr Ptr() const override { return PtrImpl(this); }
-		bool IsNull() const override { return mData == nullptr; }
+		bool IsNull() const override {
+			return mData == nullptr;
+		}
 		bool IsEmpty() const { return mData == nullptr || mData->data.empty();}
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		vl::VarPtr Copy() const override;
@@ -308,12 +275,8 @@ namespace vl
 			for (const auto& d : data)
 				Add(d);
 		}
-		bool IsList() const override { return true; }
-		const ListVar& AsList() const override { return *this; }
-		ListVar& AsList() override { return *this; }
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
-		bool IsNull() const override { return mData == nullptr; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::size_t Size() const {
 			return mData ? mData->data.size() : 0;
@@ -357,6 +320,9 @@ namespace vl
 		vl::VarPtr Copy() const override;
 		bool Same(const VarInterface& right) const override;
 		bool operator==(const VarInterface& right) const;
+		bool IsNull() const {
+			return mData == nullptr;
+		}
 		
 	private:
 		ListVarDataType mData = std::make_shared<ListDataType>();
@@ -369,7 +335,9 @@ namespace vl
 	class NullVar : public AbstractVar
 	{
 	public:
-		bool IsNull() const override { return true; }
+		bool IsNull() const override {
+			return true;
+		}
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;

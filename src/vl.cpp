@@ -88,18 +88,18 @@ namespace vl
 
 	VarPtr MakePtr(const Var& value)
 	{
-		if (value.IsBool())
-			return MakePtr(value.AsBool().Val());
-		else if (value.IsNumber())
-			return MakePtr(value.AsNumber().Val());
-		else if (value.IsString())
-			return MakePtr(value.AsString().Val());
-		else if (value.IsPointer())
-			return MakePtr(value.AsPointer().Val());
-		else if (value.IsObject())
-			return MakePtr(value.AsObject());
-		else if (value.IsList())
-			return MakePtr(value.AsList());
+		if (value.is<vl::Bool>())
+			return MakePtr(value.as<vl::Bool>().Val());
+		else if (value.is<vl::Number>())
+			return MakePtr(value.as<vl::Number>().Val());
+		else if (value.is<vl::String>())
+			return MakePtr(value.as<vl::String>().Val());
+		else if (value.is<vl::Pointer>())
+			return MakePtr(value.as<vl::Pointer>().Val());
+		else if (value.is<vl::Object>())
+			return MakePtr(value.as<vl::Object>());
+		else if (value.is<vl::List>())
+			return MakePtr(value.as<vl::List>());
 		else if (value.IsNull())
 			return MakePtr(NullVar());
 		else
@@ -114,76 +114,6 @@ namespace vl
 	}
 
 	// ======= Begin of AbstractVar definitions =======
-	const BoolVar& AbstractVar::AsBool() const
-	{
-		// Default implementation
-		static BoolVar emptyVar;
-		return emptyVar;
-	}
-
-	const NumberVar& AbstractVar::AsNumber() const
-	{
-		// Default implementation
-		static NumberVar emptyVar;
-		return emptyVar;
-	}
-
-	const StringVar& AbstractVar::AsString() const
-	{
-		// Default implementation
-		static StringVar emptyVar;
-		return emptyVar;
-	}
-
-	const PointerVar& AbstractVar::AsPointer() const
-	{
-		// Default implementation
-		static PointerVar emptyVar;
-		return emptyVar;
-	}
-
-	const ObjectVar& AbstractVar::AsObject() const
-	{
-		// Default implementation
-		return NullObject();
-	}
-
-	const ListVar& AbstractVar::AsList() const
-	{
-		// Default implementation
-		return EmptyList();
-	}
-
-	BoolVar& AbstractVar::AsBool()
-	{
-		return const_cast<BoolVar&>(const_cast<const AbstractVar*>(this)->AsBool());
-	}
-
-	NumberVar& AbstractVar::AsNumber()
-	{
-		return const_cast<NumberVar&>(const_cast<const AbstractVar*>(this)->AsNumber());
-	}
-
-	StringVar& AbstractVar::AsString()
-	{
-		return const_cast<StringVar&>(const_cast<const AbstractVar*>(this)->AsString());
-	}
-
-	PointerVar& AbstractVar::AsPointer()
-	{
-		return const_cast<PointerVar&>(const_cast<const AbstractVar*>(this)->AsPointer());
-	}
-
-	ObjectVar& AbstractVar::AsObject()
-	{
-		return const_cast<ObjectVar&>(const_cast<const AbstractVar*>(this)->AsObject());
-	}
-
-	ListVar& AbstractVar::AsList()
-	{
-		// Default implementation
-		return const_cast<ListVar&>(const_cast<const AbstractVar*>(this)->AsList());
-	}
 	Type AbstractVar::GetType() const
 	{
 		return Type::Count;
@@ -225,14 +155,14 @@ namespace vl
 
 	void PropsDataType::Notify(vl::VarPtr info)
 	{
-		info.AsObject().Set("who", "vl");
+		info.as<vl::Object>().Set("who", "vl");
 		return Observable::Notify(info);
 	}
 
 	void PropsDataType::Update(Observable* sender, vl::VarPtr info)
 	{
-		auto& o = info.AsObject();
-		if (o.Get("who").AsString().Val() != "vl")
+		auto& o = info.as<vl::Object>();
+		if (o.Get("who").as<vl::String>().Val() != "vl")
 			return;
 		if (auto subscriptionInfo = GetSubscriptionInfo(sender))
 		{
@@ -253,9 +183,9 @@ namespace vl
 
 	bool ObjectVar::operator==(const VarInterface& right) const
 	{
-		if (!right.IsObject())
+		if (!right.is<vl::Object>())
 			return false;
-		return right.AsObject().mData.get() == mData.get();
+		return right.as<vl::Object>().mData.get() == mData.get();
 	}
 
 	bool ObjectVar::operator==(const VarInterface& right)
@@ -266,9 +196,9 @@ namespace vl
 	bool ObjectVar::Same(const VarInterface& right) const
 	{
 		// Deep comparison
-		if (!right.IsObject())
+		if (!right.is<vl::Object>())
 			return false;
-		auto& right_object = right.AsObject();
+		auto& right_object = right.as<vl::Object>();
 		if (right_object.mData.get() == mData.get())
 			return true;
 		if (!mData || !right_object.mData)
@@ -289,16 +219,6 @@ namespace vl
 	ObjectVar::operator bool() const
 	{
 		return !IsNull();
-	}
-
-	const ObjectVar& ObjectVar::AsObject() const
-	{
-		return *this;
-	}
-
-	ObjectVar& ObjectVar::AsObject()
-	{
-		return *this;
 	}
 
 	Type ObjectVar::GetType() const
@@ -354,10 +274,10 @@ namespace vl
 			ret = &(mData->data[propName] = varPtr);
 		}
 
-		if (ret->IsObject())
-			ret->AsObject().Attach(mData.get(), propName);
+		if (ret->is<vl::Object>())
+			ret->as<vl::Object>().Attach(mData.get(), propName);
 		//else if (ret->IsList())
-		//	ret->AsList().Attach(mData.get(), propName);
+		//	ret->as<vl::List>().Attach(mData.get(), propName);
 		
 		LOCAL_VERBOSE(utils::format_str("Create new variable %p in %p with name '%s'", ret, this, propName.c_str()));
 
@@ -487,10 +407,10 @@ namespace vl
 				NOTIFY_BEFORE("remove", propName, mData)
 				// Unsubscribe from it's updates
 				auto& v = it->second;
-				if (v.IsObject())
-					v.AsObject().Detach(mData.get());
-				else if (v.IsList())
-					v.AsList().Detach(mData.get());
+				if (v.is<vl::Object>())
+					v.as<vl::Object>().Detach(mData.get());
+				else if (v.is<vl::List>())
+					v.as<vl::List>().Detach(mData.get());
 
 				// Erase the data
 				mData->data.erase(it);
@@ -600,8 +520,8 @@ namespace vl
 					proto = value;
 			}
 			if (proto != nullptr)
-				if (proto->IsObject())
-					if (!const_cast<const vl::ObjectVar&>(proto->AsObject()).ForeachProp([&](auto& k, auto& v) {
+				if (proto->is<vl::Object>())
+					if (!const_cast<const vl::ObjectVar&>(proto->as<vl::Object>()).ForeachProp([&](auto& k, auto& v) {
 						if (keys.find(k) != keys.end())
 							return true;
 						keys.emplace(k);
@@ -636,8 +556,8 @@ namespace vl
 		{
 			auto it = mData->data.find("proto");
 			if (it != mData->data.end())
-				if (it->second->IsObject())
-					return it->second->AsObject();
+				if (it->second->is<vl::Object>())
+					return it->second->as<vl::Object>();
 		}
 		return NullObject();
 	}
@@ -650,10 +570,10 @@ namespace vl
 			if (recursive)
 			{
 				ForeachProp([&](auto& k, auto& e) {
-					if (e.IsObject())
-						const_cast<vl::Var&>(e).AsObject().Clear(recursive);
-					else if (e.IsList())
-						const_cast<vl::Var&>(e).AsList().Clear(recursive);
+					if (e.is<vl::Object>())
+						const_cast<vl::Var&>(e).as<vl::Object>().Clear(recursive);
+					else if (e.is<vl::List>())
+						const_cast<vl::Var&>(e).as<vl::List>().Clear(recursive);
 					return true;
 				});
 				mData->data.clear();
@@ -707,9 +627,9 @@ namespace vl
 
 	bool BoolVar::operator==(const VarInterface& right) const
 	{
-		if (!right.IsBool())
+		if (!right.is<vl::Bool>())
 			return false;
-		return right.AsBool().mData == mData;
+		return right.as<vl::Bool>().mData == mData;
 	}
 
 	bool BoolVar::Same(const VarInterface& right) const
@@ -744,9 +664,9 @@ namespace vl
 
 	bool NumberVar::operator==(const VarInterface& right) const
 	{
-		if (!right.IsNumber())
+		if (!right.is<vl::Number>())
 			return false;
-		return right.AsNumber().mData == mData;
+		return right.as<vl::Number>().mData == mData;
 	}
 
 	NumberVar& NumberVar::operator=(int val)
@@ -791,9 +711,9 @@ namespace vl
 
 	bool StringVar::operator==(const VarInterface& right) const
 	{
-		if (!right.IsString())
+		if (!right.is<vl::String>())
 			return false;
-		return right.AsString().Val().compare(mData) == 0;
+		return right.as<vl::String>().Val().compare(mData) == 0;
 	}
 	
 	// ======= End of StringVar definitions =======
@@ -818,9 +738,9 @@ namespace vl
 
 	bool PointerVar::operator==(const VarInterface& right) const
 	{
-		if (!right.IsPointer())
+		if (!right.is<vl::Pointer>())
 			return false;
-		return right.AsPointer().mData == mData;
+		return right.as<vl::Pointer>().mData == mData;
 	}
 
 	bool PointerVar::Same(const VarInterface& right) const
@@ -836,14 +756,14 @@ namespace vl
 
 	void ListDataType::Notify(vl::VarPtr info)
 	{
-		info->AsObject().Set("who", "vl");
+		info->as<vl::Object>().Set("who", "vl");
 		return Observable::Notify(info);
 	}
 
 	void ListDataType::Update(Observable* sender, vl::VarPtr info)
 	{
-		auto& o = info->AsObject();
-		if (o.Get("who").AsString().Val() != "vl")
+		auto& o = info->as<vl::Object>();
+		if (o.Get("who").as<vl::String>().Val() != "vl")
 			return;
 		if (auto subscriptionInfo = GetSubscriptionInfo(sender))
 		{
@@ -894,10 +814,10 @@ namespace vl
 				for (int i = 0; i < sz; i++)
 				{
 					auto& e = mData->data[i];
-					if (e.IsObject())
-						e.AsObject().Clear(recursive);
-					else if (e.IsList())
-						e.AsList().Clear(recursive);
+					if (e.is<vl::Object>())
+						e.as<vl::Object>().Clear(recursive);
+					else if (e.is<vl::List>())
+						e.as<vl::List>().Clear(recursive);
 				}
 				mData->data.clear();
 			}
@@ -1013,10 +933,10 @@ namespace vl
 			return MakePtr(copy);
 		}
 		for (auto& prop : mData->data)
-			if (prop->IsObject())
-				copy.Add(prop->AsObject().Copy());
-			else if (prop->IsList())
-				copy.Add(prop->AsList().Copy());
+			if (prop->is<vl::Object>())
+				copy.Add(prop->as<vl::Object>().Copy());
+			else if (prop->is<vl::List>())
+				copy.Add(prop->as<vl::List>().Copy());
 			else
 				copy.Add(prop);
 		return MakePtr(copy);
@@ -1029,9 +949,9 @@ namespace vl
 
 	bool ListVar::Same(const VarInterface& right) const
 	{
-		if (!right.IsList())
+		if (!right.is<vl::List>())
 			return false;
-		auto& right_list = right.AsList();
+		auto& right_list = right.as<vl::List>();
 		if (right_list.mData.get() == mData.get())
 			return true;
 		if (!mData || !right_list.mData)
@@ -1046,7 +966,7 @@ namespace vl
 
 	bool ListVar::operator==(const VarInterface& right) const
 	{
-		return mData == right.AsList().mData;
+		return mData == right.as<vl::List>().mData;
 	}
 
 	// ======= End of ListVarDefinitions =======
