@@ -51,8 +51,8 @@ namespace vl
 		std::string ToStr() const override;
 		const void* Data() const override;
 		vl::VarPtr Copy() const override;
-		const VarPtr& operator[](const char* s) const override;
-		VarPtr& operator[](const char* s) override;
+		const VarPtr& operator[](const char* s) const;
+		VarPtr& operator[](const char* s);
 		bool Same(const VarInterface& other) const override;
 
 	protected:

@@ -1,5 +1,5 @@
 #include "vl/var_ptr.h"
-#include "VL.h"
+#include "vl.h"
 
 namespace vl
 {
@@ -61,12 +61,15 @@ namespace vl
 
 	const VarPtr& VarPtr::operator[](const char* s) const
 	{
-		return (*mPtr).operator[](s);
+		static VarPtr emptyVar;
+		if (is<Object>())
+			return as<Object>()[s];
+		return emptyVar;
 	}
 
 	VarPtr& VarPtr::operator[](const char* s)
 	{
-		return (*mPtr).operator[](s);
+		return const_cast<VarPtr&>(static_cast<const VarPtr&>(*this)[s]);
 	}
 
 	bool VarPtr::Same(const VarInterface& other) const

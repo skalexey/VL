@@ -130,15 +130,6 @@ namespace vl
 		return Ptr();
 	}
 
-	const VarPtr& AbstractVar::operator[](const char* s) const
-	{
-		return VarPtr();
-	}
-
-	VarPtr& AbstractVar::operator[](const char* s)
-	{
-		return EmptyVarPtr();
-	}
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
@@ -284,39 +275,6 @@ namespace vl
 		return *ret;
 	}
 
-	const VarPtr& ObjectVar::Get(const std::string& propName) const
-	{
-		if (!mData)
-			return EmptyVarPtr();
-		auto it = mData->data.find(propName);
-		if (it != mData->data.end())
-			return it->second;
-		else
-		{
-			if (auto& proto = GetPrototype())
-				return proto.Get(propName);
-		}
-		return EmptyVarPtr();
-	}
-
-	VarPtr& ObjectVar::Get(const std::string& propName)
-	{
-		return const_cast<VarPtr&>(const_cast<const ObjectVar*>(this)->Get(propName));
-	}
-
-	const VarPtr& ObjectVar::operator[](const char* s) const
-	{
-		return Get(s);
-	}
-
-	VarPtr& ObjectVar::operator[](const char* s)
-	{
-		auto& ptr = Get(s);
-		if (!ptr)
-			return Set(s, VarPtr());
-		return ptr;
-	}
-	
 	bool ObjectVar::Has(const std::string& propName) const
 	{
 		if (!mData)

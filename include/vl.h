@@ -25,8 +25,6 @@ namespace vl
 		std::string ToStr() const override { return ""; }
 		const void* Data() const override;
 		vl::VarPtr Copy() const override;
-		const VarPtr& operator[](const char* s) const override;
-		VarPtr& operator[](const char* s) override;
 		bool Same(const VarInterface& right) const override { return false; }
 
 	protected:
@@ -188,10 +186,41 @@ namespace vl
 		{
 			return Set(propName, MakePtr(value));
 		}
-		const VarPtr& operator[](const char* s) const override;
-		VarPtr& operator[](const char* s) override;
-		const VarPtr& Get(const std::string& propName) const;
-		VarPtr& Get(const std::string& propName);
+		// Allow templating subscript operator though using it is quite combersome.
+		template <typename T = VarPtr>
+		const T& operator[](const char* s) const
+		{
+			return Get<T>(s);
+		}
+		template <typename T = VarPtr>
+		T& operator[](const char* s)
+		{
+			auto& ptr = Get<T>(s);
+			if (!ptr)
+				return Set(s, VarPtr());
+			return ptr;
+		}
+		template <typename T = VarPtr>
+		const T& Get(const std::string& propName) const
+		{
+			static T emptyVar;
+			if (!mData)
+				return emptyVar;
+			auto it = mData->data.find(propName);
+			if (it != mData->data.end())
+				return it->second;
+			else
+			{
+				if (auto& proto = GetPrototype())
+					return proto.Get<T>(propName);
+			}
+			return emptyVar;
+		}
+		template <typename T = VarPtr>
+		T& Get(const std::string& propName)
+		{
+			return const_cast<T&>(const_cast<const ObjectVar*>(this)->Get<T>(propName));
+		}
 		bool Has(const std::string& propName) const;
 		bool HasOwn(const std::string& propName) const;
 		std::shared_ptr<std::string> GetRelativePath(const std::string& propName) const;
