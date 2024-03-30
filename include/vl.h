@@ -67,7 +67,10 @@ namespace vl
 		Type GetType() const override;
 		VarPtr Ptr() const override { return PtrImpl(this); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		float Val() const { return mData; }
+		template <typename T = float>
+		T Val() const {
+			return static_cast<T>(mData);
+		}
 		std::string ToStr() const override;
 		bool Same(const VarInterface& right) const override;
 		bool operator==(const VarInterface& right) const;
