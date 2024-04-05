@@ -1,46 +1,51 @@
-#include "TypeResolver.h"
 #include "vl.h"
-#include <utils/log.h>
 #include <utils/string_utils.h>
+#include <utils/log.h>
+#include "vl/TypeResolver.h"
 
-TypeResolver::TypeResolver(
-	const FGetTypeId& fGetTypeId
-	, const FGetProto& fGetProto
-	, const FIsType& fIsType
-)
-	: mGetTypeId(fGetTypeId)
-	, mGetProto(fGetProto)
-	, mIsType(fIsType)
-{}
+LOG_TITLE("vl::TypeResolver")
 
-TypeResolver::operator bool() const
+namespace vl
 {
-	return mGetTypeId || mGetProto;
-}
+	TypeResolver::TypeResolver(
+		const FGetTypeId& fGetTypeId
+		, const FGetProto& fGetProto
+		, const FIsType& fIsType
+	)
+		: mGetTypeId(fGetTypeId)
+		, mGetProto(fGetProto)
+		, mIsType(fIsType)
+	{}
 
-std::string TypeResolver::GetTypeId(const vl::Object& object) const
-{
-	if (mGetTypeId)
-		return mGetTypeId(object);
-	else
-		LOG_ERROR(utils::format_str("Trying to resolve type id on object %p using uninitialized TypeResolver", &object));
-	return "";
-}
+	TypeResolver::operator bool() const
+	{
+		return mGetTypeId || mGetProto;
+	}
 
-const vl::Object& TypeResolver::GetProto(const std::string& protoId) const
-{
-	if (mGetProto)
-		return mGetProto(protoId);
-	else
-		LOG_ERROR(utils::format_str("Trying to resolve prototype '%s' using uninitialized TypeResolver", protoId.c_str()));
-	return vl::NullObject();
-}
+	std::string TypeResolver::GetTypeId(const vl::Object& object) const
+	{
+		if (mGetTypeId)
+			return mGetTypeId(object);
+		else
+			LOG_ERROR(utils::format_str("Trying to resolve type id on object %p using uninitialized TypeResolver", &object));
+		return "";
+	}
 
-bool TypeResolver::IsType(const vl::Object& object) const
-{
-	if (mIsType)
-		return mIsType(object);
-	else
-		LOG_ERROR(utils::format_str("Trying to know wheter an object %p is a type using uninitialized TypeResolver", &object));
-	return false;
+	const vl::Object& TypeResolver::GetProto(const std::string& protoId) const
+	{
+		if (mGetProto)
+			return mGetProto(protoId);
+		else
+			LOG_ERROR(utils::format_str("Trying to resolve prototype '%s' using uninitialized TypeResolver", protoId.c_str()));
+		return vl::NullObject();
+	}
+
+	bool TypeResolver::IsType(const vl::Object& object) const
+	{
+		if (mIsType)
+			return mIsType(object);
+		else
+			LOG_ERROR(utils::format_str("Trying to know wheter an object %p is a type using uninitialized TypeResolver", &object));
+		return false;
+	}
 }

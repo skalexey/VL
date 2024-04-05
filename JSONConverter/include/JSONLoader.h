@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include "vl_fwd.h"
-#include "TypeResolver.h"
+#include "vl/TypeResolver.h"
 
 namespace vl
 {

@@ -2,7 +2,7 @@
 #include "JSONDefs.h"
 #include <rapidjson/fwd.h>
 #include "rapidjson/document.h"
-#include "TypeResolver.h"
+#include "vl/TypeResolver.h"
 
 namespace vl
 {

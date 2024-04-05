@@ -3,7 +3,7 @@
 #include <string>
 #include "vl.h"
 #include "JSONDefs.h"
-#include "TypeResolver.h"
+#include "vl/TypeResolver.h"
 
 namespace vl
 {
