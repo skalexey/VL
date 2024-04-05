@@ -61,15 +61,20 @@ namespace vl
 
 	const VarPtr& VarPtr::operator[](const char* s) const
 	{
-		static VarPtr emptyVar;
 		if (is<Object>())
 			return as<Object>()[s];
+		assert(false && "Subscript operator called on a not an object");
+		static VarPtr emptyVar;
 		return emptyVar;
 	}
 
 	VarPtr& VarPtr::operator[](const char* s)
 	{
-		return const_cast<VarPtr&>(static_cast<const VarPtr&>(*this)[s]);
+		if (is<Object>())
+			return as<Object>()[s];
+		assert(false && "Subscript operator called on a not an object");
+		static VarPtr emptyVar;
+		return emptyVar = VarPtr();
 	}
 
 	bool VarPtr::Same(const VarInterface& other) const

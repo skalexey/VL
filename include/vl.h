@@ -196,6 +196,11 @@ namespace vl
 			return Get<T>(s);
 		}
 		template <typename T = VarPtr>
+		const T& operator[](const std::string& s) const
+		{
+			return Get<T>(s);
+		}
+		template <typename T = VarPtr>
 		T& operator[](const char* s)
 		{
 			auto& ptr = Get<T>(s);
@@ -204,9 +209,14 @@ namespace vl
 			return ptr;
 		}
 		template <typename T = VarPtr>
+		T& operator[](const std::string& s)
+		{
+			return operator[](s.c_str());
+		}
+		template <typename T = VarPtr>
 		const T& Get(const std::string& propName) const
 		{
-			static T emptyVar;
+			static const T emptyVar;
 			if (!mData)
 				return emptyVar;
 			auto it = mData->data.find(propName);

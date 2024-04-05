@@ -53,6 +53,12 @@ namespace vl
 		vl::VarPtr Copy() const override;
 		const VarPtr& operator[](const char* s) const;
 		VarPtr& operator[](const char* s);
+		const VarPtr& operator[](const std::string& s) const {
+			return operator[](s.c_str());
+		}
+		VarPtr& operator[](const std::string& s) {
+			return operator[](s.c_str());
+		}
 		bool Same(const VarInterface& other) const override;
 
 	protected:
