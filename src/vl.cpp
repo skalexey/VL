@@ -227,11 +227,6 @@ namespace vl
 		return Set(propName, MakePtr(NullVar()));
 	}
 
-	VarPtr& ObjectVar::Set(const std::string& propName, const Var& value)
-	{
-		return Set(propName, MakePtr(value));
-	}
-
 	VarPtr& ObjectVar::Set(const std::string& propName, const VarPtr& varPtr)
 	{
 		if (!mData)

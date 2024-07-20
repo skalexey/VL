@@ -63,7 +63,7 @@ namespace vl
 	{
 		if (is<Object>())
 			return as<Object>()[s];
-		assert(false && "Subscript operator called on a not an object");
+		assert(false && "Subscript operator called on not an object");
 		static VarPtr emptyVar;
 		return emptyVar;
 	}
@@ -72,7 +72,7 @@ namespace vl
 	{
 		if (is<Object>())
 			return as<Object>()[s];
-		assert(false && "Subscript operator called on a not an object");
+		assert(false && "Subscript operator called on not an object");
 		static VarPtr emptyVar;
 		return emptyVar = VarPtr();
 	}

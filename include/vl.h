@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <cstddef>
 #include <assert.h>
 #include <string>
@@ -182,17 +183,17 @@ namespace vl
 		Type GetType() const override;
 		std::size_t Size() const;
 		VarPtr& Set(const std::string& propName);
-		VarPtr& Set(const std::string& propName, const Var& value);
 		VarPtr& Set(const std::string& propName, const VarPtr& varPtr);
 		template <typename T>
-		VarPtr& Set(const std::string& propName, const T& value)
-		{
-			return Set(propName, MakePtr(value));
+		VarPtr& Set(const std::string& propName, const T& value) {
+			if constexpr (std::is_same_v<T, VarPtr>)
+				return Set(propName, static_cast<const VarPtr&>(value));
+			else
+				return Set(propName, static_cast<const VarPtr&>(MakePtr(value)));
 		}
-		// Allow templating subscript operator though using it is quite combersome.
+		// Allow templating subscript operator for reusing in other methods.
 		template <typename T = VarPtr>
-		const T& operator[](const char* s) const
-		{
+		const T& operator[](const char* s) const {
 			return Get<T>(s);
 		}
 		template <typename T = VarPtr>
@@ -201,38 +202,48 @@ namespace vl
 			return Get<T>(s);
 		}
 		template <typename T = VarPtr>
-		T& operator[](const char* s)
-		{
-			auto& ptr = Get<T>(s);
-			if (!ptr)
-				return Set(s, VarPtr());
-			return ptr;
-		}
-		template <typename T = VarPtr>
-		T& operator[](const std::string& s)
-		{
-			return operator[](s.c_str());
-		}
-		template <typename T = VarPtr>
-		const T& Get(const std::string& propName) const
-		{
-			static const T emptyVar;
-			if (!mData)
-				return emptyVar;
-			auto it = mData->data.find(propName);
-			if (it != mData->data.end())
-				return it->second;
+		T& operator[](const char* s) {
+			if (auto ptr = getImpl<T>(s))
+				return const_cast<T&>(*ptr);
+			if constexpr (std::is_same_v<T, VarPtr>)
+				return Set(s, T());
 			else
-			{
-				if (auto& proto = GetPrototype())
-					return proto.Get<T>(propName);
-			}
-			return emptyVar;
+				return Set(s, VarPtr::Make<T>()).as<T>();
+		}
+		template <typename T = VarPtr>
+		T& operator[](const std::string& s) {
+			return operator[]<T>(s.c_str());
+		}
+		// Returns reference to an existing variable stored under <propName>. If the value does not exist, it will crash on dereferencing nullptr.
+		template <typename T = VarPtr>
+		const T& Get(const std::string& propName) const {
+			return *getImpl<T>(propName);
 		}
 		template <typename T = VarPtr>
 		T& Get(const std::string& propName)
 		{
 			return const_cast<T&>(const_cast<const ObjectVar*>(this)->Get<T>(propName));
+		}
+		// Get() with default value. Always returns a new object (not a reference)
+		template <typename T = VarPtr, typename Default_t = VarPtr>
+		T Get(const std::string& propName, Default_t def) const {
+			if (mData)
+				if (auto result = getImpl<T>(propName))
+					return *result;
+			return def;
+		}
+		// Always returns a value. Creates a new one if it does not exist.
+		template <typename T = VarPtr>
+		T& Def(const std::string& propName) {
+			return operator []<T>(propName);
+		}
+		// Const version of Def(). Always returns a value, but can't create a new one, so it returns a new default-initialized instance of T if it does not exist.
+		template <typename T = VarPtr>
+		const T& GetDef(const std::string& propName) const {
+			if (auto ptr = getImpl<T>(propName))
+				return *ptr;
+			static T emptyValue;
+			return emptyValue;
 		}
 		bool Has(const std::string& propName) const;
 		bool HasOwn(const std::string& propName) const;
@@ -267,9 +278,25 @@ namespace vl
 			return mData.get();
 		}
 		void Clear(bool recursive = false);
+
 	protected:
 		std::shared_ptr<std::string> getRelativePathRecursive(const std::string& propName, const std::string& path = "") const;
 		bool overriddenRecursive(const std::string& propName, int count = 0) const;
+		template <typename T = VarPtr>
+		const T* getImpl(const std::string& propName) const {
+			auto it = mData->data.find(propName);
+			if (it != mData->data.end())
+				// VarPtr redirects self() to its mPtr
+				if (auto ptr = dynamic_cast<const T*>(&it->second))
+					return ptr;
+				else if (auto& ptr = it->second)
+					return ptr->template as_raw_ptr<T>();
+				else
+					if (auto& proto = GetPrototype())
+						if (auto proto_search_result = proto.Get(propName, VarPtr()))
+							return proto_search_result.as_raw_ptr<T>();
+			return nullptr;
+		}
 
 	protected:
 		ObjectDataType mData = std::make_shared<PropsDataType>();

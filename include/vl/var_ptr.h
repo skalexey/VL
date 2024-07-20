@@ -11,6 +11,10 @@ namespace vl
 		Ptr_t mPtr;
 
 	public:
+		template <typename T>
+		static VarPtr Make() {
+			return VarPtr(std::make_shared<T>());
+		}
 		VarPtr() = default;
 		VarPtr(const Ptr_t& ptr) : mPtr(ptr) {}
 		VarPtr(std::nullptr_t null_ptr) : mPtr(nullptr) {}
