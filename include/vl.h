@@ -33,13 +33,13 @@ namespace vl
 	protected:
 		template <typename T>
 		VarPtr ptrImpl() {
-			return const_cast<const AbstractVar&>(*this).getImpl();
+			return const_cast<const AbstractVar&>(*this).ptrImpl();
 		}
 		template <typename T>
 		VarPtr ptrImpl() const {
 			if (!weak_from_this().expired()) {
 				auto ptr = std::dynamic_pointer_cast<const T>(shared_from_this()); // Entity to T
-				return std::const_pointer_cast<T>(ptr);
+				return VarPtr(std::const_pointer_cast<T>(ptr));
 			} else
 				return MakePtr(static_cast<const T&>(*this));
 		}
