@@ -21,9 +21,9 @@ void WriteTest()
 	branch.Set("leafCount", 10);
 	branch.Set("fruit", vl::Object());
 	branch.Set("branches", vl::List());
-	auto branch1 = branch.Copy()->as<vl::Object>();
+	auto branch1 = branch.CopyAsPtr()->as<vl::Object>();
 	branch1.Set("leafCount", 9);
-	auto branch2 = branch.Copy()->as<vl::Object>();
+	auto branch2 = branch.CopyAsPtr()->as<vl::Object>();
 	branch2.Set("leafCount", 3);
 	branch2.Set("fruit", pear);
 	branch1.Get("branches").as<vl::List>().Add(branch2);

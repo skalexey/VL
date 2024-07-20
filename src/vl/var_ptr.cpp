@@ -54,9 +54,9 @@ namespace vl
 		return mPtr ? mPtr->Data() : nullptr;
 	}
 
-	vl::VarPtr VarPtr::Copy() const
+	vl::VarPtr VarPtr::CopyAsPtr() const
 	{
-		return mPtr->Copy();
+		return mPtr->CopyAsPtr();
 	}
 
 	const VarPtr& VarPtr::operator[](const char* s) const

@@ -22,17 +22,31 @@ namespace vl
 	public:
 		virtual bool Accept(Visitor& v, const char* name = nullptr) const { return true; }
 		Type GetType() const override;
+		virtual VarPtr Ptr() {
+			return const_cast<const AbstractVar&>(*this).Ptr();
+		};
 		virtual VarPtr Ptr() const = 0;
 		std::string ToStr() const override { return ""; }
 		const void* Data() const override;
-		vl::VarPtr Copy() const override;
 		bool Same(const VarInterface& right) const override { return false; }
 
 	protected:
 		template <typename T>
-		VarPtr PtrImpl(const T* body) const {
+		VarPtr ptrImpl() {
+			return const_cast<const AbstractVar&>(*this).getImpl();
+		}
+		template <typename T>
+		VarPtr ptrImpl() const {
+			if (!weak_from_this().expired()) {
+				auto ptr = std::dynamic_pointer_cast<const T>(shared_from_this()); // Entity to T
+				return std::const_pointer_cast<T>(ptr);
+			} else
+				return MakePtr(static_cast<const T&>(*this));
+		}
+		template <typename T>
+		VarPtr shallowCopy() const {
 			auto p = std::make_shared<T>();
-			*(p.get()) = *body;
+			*(p.get()) = static_cast<const T&>(*this);
 			return std::dynamic_pointer_cast<AbstractVar>(p);
 		}
 	};
@@ -46,7 +60,8 @@ namespace vl
 		BoolVar() = default;
 		BoolVar(bool value) : mData(value) {}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<BoolVar>(); }
+		VarPtr CopyAsPtr() const override { return shallowCopy<BoolVar>(); }
 		bool Val() const { return mData; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
@@ -66,7 +81,8 @@ namespace vl
 		NumberVar() = default;
 		NumberVar(float value) : mData(value) {}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<NumberVar>(); }
+		VarPtr CopyAsPtr() const override { return shallowCopy<NumberVar>(); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		template <typename T = float>
 		T Val() const {
@@ -91,7 +107,8 @@ namespace vl
 		StringVar() = default;
 		StringVar(const std::string& value) : mData(value) {}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<StringVar>(); }
+		VarPtr CopyAsPtr() const override { return shallowCopy<StringVar>(); }
 		const std::string& Val() const { return mData; }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::string ToStr() const override;
@@ -114,7 +131,8 @@ namespace vl
 		PointerVar() = default;
 		PointerVar(const void* value) : mData((void*)value) {}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<PointerVar>(); }
+		VarPtr CopyAsPtr() const override { return shallowCopy<PointerVar>(); }
 		template <typename T = void>
 		const T* GetVal() const { return reinterpret_cast<const T*>(mData); }
 		template <typename T = void>
@@ -252,13 +270,14 @@ namespace vl
 		std::size_t PropCount() const;
 		bool RemoveProperty(const std::string& propName);
 		bool RenameProperty(const std::string& propName, const std::string& newName);
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<ObjectVar>(); }
 		bool IsNull() const override {
 			return mData == nullptr;
 		}
 		bool IsEmpty() const { return mData == nullptr || mData->data.empty();}
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
-		vl::VarPtr Copy() const override;
+		vl::VarPtr CopyAsPtr() const override;
+		vl::ObjectVar Copy() const;
 		bool ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive = false) const;
 		bool ForeachProp(const std::function<bool(const std::string&, vl::Var&)>& pred, bool recursive = false);
 		void SetPrototype(const vl::Object& proto);
@@ -345,7 +364,7 @@ namespace vl
 				Add(d);
 		}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<ListVar>(); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		std::size_t Size() const {
 			return mData ? mData->data.size() : 0;
@@ -354,7 +373,7 @@ namespace vl
 		bool Remove(int index);
 		const VarPtr& At(int index) const;
 		VarPtr& At(int index);
-		const VarPtr& operator[](int index) {
+		VarPtr& operator[](int index) {
 			return At(index);
 		}
 		const VarPtr& operator[](int index) const {
@@ -386,7 +405,8 @@ namespace vl
 		const void* Data() const override {
 			return mData.get();
 		}
-		vl::VarPtr Copy() const override;
+		vl::VarPtr CopyAsPtr() const override;
+		vl::ListVar Copy() const;
 		bool Same(const VarInterface& right) const override;
 		bool operator==(const VarInterface& right) const;
 		bool IsNull() const {
@@ -408,7 +428,8 @@ namespace vl
 			return true;
 		}
 		Type GetType() const override;
-		VarPtr Ptr() const override { return PtrImpl(this); }
+		VarPtr Ptr() const override { return ptrImpl<NullVar>(); }
+		VarPtr CopyAsPtr() const override { return shallowCopy<NullVar>(); }
 		bool Accept(Visitor& v, const char* name = nullptr) const override;
 		const void* Data() const override {
 			return nullptr;

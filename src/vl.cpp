@@ -124,12 +124,6 @@ namespace vl
 		return nullptr;
 	}
 
-	vl::VarPtr AbstractVar::Copy() const
-	{
-		// Default implementation
-		return Ptr();
-	}
-
 	// ======= End of AbstractVar definitions =======
 
 	// ======= Begin of ObjectVar definitions =======
@@ -432,20 +426,26 @@ namespace vl
 		return true;
 	}
 
-	VarPtr ObjectVar::Copy() const
+	VarPtr ObjectVar::CopyAsPtr() const
 	{
-		ObjectVar copy;
+		auto copy_shared_ptr = std::make_shared<ObjectVar>();
+		auto& copy = *copy_shared_ptr;
 		if (!mData)
-		{
 			copy.mData = nullptr;
-			return MakePtr(copy);
+		else
+		{
+			for (auto& [name, prop] : mData->data)
+				if (name == "proto")
+					copy.Set(name, prop);
+				else
+					copy.Set(name, prop.Copy());
 		}
-		for (auto& [name, prop] : mData->data)
-			if (name == "proto")
-				copy.Set(name.c_str(), prop);
-			else
-				copy.Set(name.c_str(), prop->Copy());
-		return MakePtr(copy);
+		return VarPtr(copy_shared_ptr);
+	}
+
+	ObjectVar ObjectVar::Copy() const
+	{
+		return CopyAsPtr().as<vl::Object>();
 	}
 
 	bool ObjectVar::ForeachProp(const std::function<bool(const std::string&, const vl::Var&)>& pred, bool recursive) const
@@ -877,22 +877,26 @@ namespace vl
 		return mData ? mData->data.empty() : true;;
 	}
 
-	VarPtr ListVar::Copy() const
+	VarPtr ListVar::CopyAsPtr() const
 	{
-		ListVar copy;
+		auto shared_ptr = std::make_shared<ListVar>();
+		auto& copy = *shared_ptr;
 		if (!mData)
-		{
 			copy.mData = nullptr;
-			return MakePtr(copy);
+		else
+		{
+			for (auto& prop : mData->data)
+				if (prop->is<vl::Object>() || prop->is<vl::List>())
+					copy.Add(prop.Copy());
+				else
+					copy.Add(prop);
 		}
-		for (auto& prop : mData->data)
-			if (prop->is<vl::Object>())
-				copy.Add(prop->as<vl::Object>().Copy());
-			else if (prop->is<vl::List>())
-				copy.Add(prop->as<vl::List>().Copy());
-			else
-				copy.Add(prop);
-		return MakePtr(copy);
+		return VarPtr(shared_ptr);
+	}
+
+	ListVar ListVar::Copy() const
+	{
+		return CopyAsPtr().as<vl::List>();
 	}
 
 	std::string ListVar::ToStr() const

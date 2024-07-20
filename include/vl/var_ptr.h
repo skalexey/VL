@@ -7,10 +7,9 @@ namespace vl
 {
 	class VarPtr : public VarInterface
 	{
-		using Ptr_t = std::shared_ptr<Var>;
-		Ptr_t mPtr;
-
 	public:
+		using Ptr_t = std::shared_ptr<Var>;
+
 		template <typename T>
 		static VarPtr Make() {
 			return VarPtr(std::make_shared<T>());
@@ -54,7 +53,10 @@ namespace vl
 		operator bool() const override;
 		std::string ToStr() const override;
 		const void* Data() const override;
-		vl::VarPtr Copy() const override;
+		vl::VarPtr CopyAsPtr() const override;
+		vl::VarPtr Copy() const {
+			return CopyAsPtr();
+		}
 		const VarPtr& operator[](const char* s) const;
 		VarPtr& operator[](const char* s);
 		const VarPtr& operator[](const std::string& s) const {
@@ -67,5 +69,8 @@ namespace vl
 
 	protected:
 		const utils::entity* self() const override;
+
+	private:
+		Ptr_t mPtr;
 	};
 }
