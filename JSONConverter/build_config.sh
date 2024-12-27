@@ -1,7 +1,7 @@
 #!/bin/bash
 
 buildFolderPrefix="Build"
-extraArg=" -DDEPS=${depsLocation}"
+extraArg=" "
 extraArgWin=$extraArg
 extraArgMac=$extraArg
 buildConfig="Debug"
