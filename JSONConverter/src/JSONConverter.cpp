@@ -8,8 +8,10 @@
 #include "rapidjson/prettywriter.h"
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 using namespace rapidjson;
+namespace fs = std::filesystem;
 
 bool vl::JSONConverter::Store(vl::Object& object, const TypeResolver& typeResolver, const std::string& filePath, const CnvParams& params)
 {
@@ -17,6 +19,9 @@ bool vl::JSONConverter::Store(vl::Object& object, const TypeResolver& typeResolv
 	if (!JSONStr(object, typeResolver, jsonStr, params))
 		return false;
 	std::ofstream f;
+	fs::path p(filePath);
+	auto dir = p.parent_path();
+	fs::create_directories(dir);
 	f.open(filePath);
 	f << jsonStr;
 	f.close();
